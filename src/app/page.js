@@ -1,14 +1,63 @@
 "use client";
 import Image from "next/image";
 import styles from "./page.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  const headerRef = useRef(null);
+  const heroRef = useRef(null);
+  const aboutRef = useRef(null);
+  const candidatureRef = useRef(null);
+
+  const closeBurgerMenu = () => {
+    if (typeof document === 'undefined') return;
+    const toggle = document.getElementById('nav-toggle');
+    if (toggle && 'checked' in toggle) toggle.checked = false;
+  };
+
+  const getHeaderOffset = () => {
+    const headerHeight = headerRef.current?.getBoundingClientRect?.().height || 0;
+    // add a little breathing room under the fixed header
+    return headerHeight ? Math.round(headerHeight + 16) : 110;
+  };
+
+  const scrollToElement = (el) => {
+    if (!el || typeof window === 'undefined') return;
+    const offset = getHeaderOffset();
+    const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - offset);
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
+
   const openForm = () => {
+    closeBurgerMenu();
+
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+      setFormStep(1);
+      setTimeout(() => {
+        const el = candidatureRef.current || document.getElementById('candidature');
+        if (el) {
+          const firstField = el.querySelector('input, textarea, select');
+          // Scroll to the first field so we land "in" the form, not on the section header.
+          scrollToElement(firstField || el);
+          setTimeout(() => {
+            if (firstField && typeof firstField.focus === 'function') firstField.focus();
+          }, 160);
+        }
+      }, 0);
+      return;
+    }
+
+    // Desktop: open overlay
     setIsFormOpen(true);
     setFormStep(1);
+
+    // Focus first field once the overlay is mounted
+    setTimeout(() => {
+      const first = document.querySelector(`.${styles.formm} input, .${styles.formm} textarea, .${styles.formm} select`);
+      if (first && typeof first.focus === 'function') first.focus();
+    }, 0);
   };
   const closeForm = () => {
     setIsFormOpen(false);
@@ -217,11 +266,27 @@ export default function Home() {
     });
   };
 
-  const scrollToAbout = () => {
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth'
-    });
+  const goHome = () => {
+    closeBurgerMenu();
+    setIsHeaderHidden(false);
+    scrollToHome();
+  };
+
+  const goAbout = () => {
+    closeBurgerMenu();
+    setIsHeaderHidden(false);
+    // Correction : scroll pile au début de la section about, même sur mobile
+    if (aboutRef.current) {
+      const offset = getHeaderOffset();
+      const rect = aboutRef.current.getBoundingClientRect();
+      const absoluteY = window.scrollY + rect.top;
+      window.scrollTo({ top: absoluteY - offset, behavior: 'smooth' });
+    }
+  };
+
+  const goCandidature = () => {
+    setIsHeaderHidden(false);
+    openForm();
   };
 
   useEffect(() => {
@@ -238,10 +303,466 @@ export default function Home() {
     };
   }, [isFormOpen]);
 
+  const desktopCandidatureForm = (
+    <div className={styles.form}>
+      <form onSubmit={handleSubmit} className={styles.formm}>
+        {/* Progress Indicator */}
+        <div className={styles.stepIndicator}>
+          <div className={`${styles.stepDot} ${formStep >= 1 ? styles.active : ''}`}>1</div>
+          <div className={`${styles.stepLine} ${formStep >= 2 ? styles.active : ''}`}></div>
+          <div className={`${styles.stepDot} ${formStep >= 2 ? styles.active : ''}`}>2</div>
+          <div className={`${styles.stepLine} ${formStep >= 3 ? styles.active : ''}`}></div>
+          <div className={`${styles.stepDot} ${formStep >= 3 ? styles.active : ''}`}>3</div>
+        </div>
+
+        <div key={formStep} className={styles.stepPane}>
+          {/* Section 1: Infos de base */}
+          {formStep === 1 && (
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>Informations Personnelles</h3>
+              <div className={styles.mainInfoGrid}>
+                <input type="text" name="nom" placeholder="Nom" value={formData.nom} onChange={handleChange} required />
+                <input type="text" name="prenom" placeholder="Prénom" value={formData.prenom} onChange={handleChange} required />
+                <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+                <input type="text" name="whatssap" placeholder="Numéro WhatsApp" value={formData.whatssap} onChange={handleChange} required />
+
+                <input type="number" name="age" placeholder="Âge" value={formData.age} onChange={handleChange} required />
+                <div className={styles.cityContainer}>
+                  <input
+                    type="text"
+                    name="ville"
+                    placeholder="Ville (ex: Paris 75001)"
+                    value={formData.ville}
+                    onChange={handleCityChange}
+                    required
+                    autoComplete="off"
+                    style={{ width: '100%' }}
+                  />
+                  {showSuggestions && citySuggestions.length > 0 && (
+                    <ul className={styles.suggestionsList}>
+                      {citySuggestions.map((city, index) => (
+                        <li
+                          key={`${city.code}-${index}`}
+                          className={styles.suggestionItem}
+                          onClick={() => selectCity(city)}
+                        >
+                          {city.nom} ({city.codesPostaux[0]})
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <input type="text" name="tiktok" placeholder="Lien TikTok" value={formData.tiktok} onChange={handleChange} />
+                <input type="text" name="instagram" placeholder="Lien Instagram" value={formData.instagram} onChange={handleChange} />
+              </div>
+            </div>
+          )}
+
+          {/* Section 2: Texte de motivation */}
+          {formStep === 2 && (
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>Ta Présentation</h3>
+              <textarea
+                name="presentation"
+                placeholder="Parle-nous de toi ! Pourquoi tu veux rejoindre Queen House ? Quels sont tes talents, tes rêves ? (500 caractères max)"
+                value={formData.presentation}
+                onChange={handleChange}
+                maxLength={500}
+                className={styles.textarea}
+                rows={6}
+              />
+              <p className={styles.charCount}>{formData.presentation.length}/500</p>
+            </div>
+          )}
+
+          {/* Section 3: Photos et Vidéos */}
+          {formStep === 3 && (
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>Tes Médias</h3>
+
+              <div className={styles.fileUploadSection}>
+                <h4 className={styles.fileUploadTitle}>Vos Photos (Max 5)</h4>
+                <div className={styles.filesGrid}>
+                  <div className={styles.fileInputGroup}>
+                    <label className={styles.fileLabel}>Sélectionnez vos photos</label>
+                    <input
+                      type="file"
+                      name="photos"
+                      accept="image/*"
+                      multiple
+                      onChange={handleChange}
+                      className={styles.fileInput}
+                    />
+                    <p className={styles.fileHint}>Vous pouvez sélectionner jusqu'à 5 photos à la fois</p>
+                    {formData.photos && formData.photos.length > 0 && (
+                      <div className={styles.previewsContainer}>
+                        {formData.photos.map((photo, index) => (
+                          previews[`photo${index + 1}`] && (
+                            <div key={`photo-${index}`} className={styles.previewItem} title={photo?.name || `Photo ${index + 1}`}>
+                              <img src={previews[`photo${index + 1}`]} alt={`Aperçu ${index + 1}`} className={styles.previewImage} />
+                              <span className={styles.photoCount}>{index + 1}</span>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.fileUploadSection}>
+                <h4 className={styles.fileUploadTitle}>Vos Vidéos (Max 5)</h4>
+                <div className={styles.filesGrid}>
+                  <div className={styles.fileInputGroup}>
+                    <label className={styles.fileLabel}>Sélectionnez vos vidéos</label>
+                    <input
+                      type="file"
+                      name="videos"
+                      accept="video/*"
+                      multiple
+                      onChange={handleChange}
+                      className={styles.fileInput}
+                    />
+                    <p className={styles.fileHint}>Vous pouvez sélectionner jusqu'à 5 vidéos à la fois</p>
+                    {formData.videos && formData.videos.length > 0 && (
+                      <div className={styles.previewsContainer}>
+                        {formData.videos.map((video, index) => (
+                          previews[`video${index + 1}`] && (
+                            <div key={`video-${index}`} className={styles.previewItem} title={video?.name || `Vidéo ${index + 1}`}>
+                              <video src={previews[`video${index + 1}`]} controls className={styles.previewVideo} />
+                              <span className={styles.videoCount}>{index + 1}</span>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className={styles.formNavigation}>
+          {formStep > 1 && (
+            <button type="button" className={styles.prevButton} onClick={prevStep}>← Précédent</button>
+          )}
+          {formStep < 3 ? (
+            <button type="button" className={styles.nextButton} onClick={nextStep}>Suivant →</button>
+          ) : (
+            <button type="submit" className={styles.submitButton}>Envoyer ma candidature</button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+
+  const mobileProgress = formStep === 1 ? 33 : formStep === 2 ? 66 : 100;
+
+  const mobileCandidatureForm = (
+    <form className={styles.mobileForm} onSubmit={handleSubmit}>
+      <div className={styles.mobileFormTop}>
+        <div className={styles.mobileProgressTrack} aria-hidden="true">
+          <div className={styles.mobileProgressFill} style={{ width: `${mobileProgress}%` }}></div>
+        </div>
+
+        <div className={styles.mobilePills} role="tablist" aria-label="Étapes du formulaire">
+          <button
+            type="button"
+            className={`${styles.mobilePill} ${formStep === 1 ? styles.mobilePillActive : ''}`}
+            onClick={() => setFormStep(1)}
+          >
+            Infos
+          </button>
+          <button
+            type="button"
+            className={`${styles.mobilePill} ${formStep === 2 ? styles.mobilePillActive : ''}`}
+            onClick={() => setFormStep(2)}
+          >
+            Présentation
+          </button>
+          <button
+            type="button"
+            className={`${styles.mobilePill} ${formStep === 3 ? styles.mobilePillActive : ''}`}
+            onClick={() => setFormStep(3)}
+          >
+            Médias
+          </button>
+        </div>
+      </div>
+
+      <div key={`mobile-step-${formStep}`} className={styles.mobileStepPane}>
+        {formStep === 1 && (
+          <div className={styles.mobileCard}>
+            <h4 className={styles.mobileCardTitle}>Informations</h4>
+
+            <div className={styles.mobileRow}>
+              <div className={styles.mobileField}>
+                <label className={styles.mobileLabel} htmlFor="m-nom">Nom *</label>
+                <input
+                  id="m-nom"
+                  className={styles.mobileInput}
+                  type="text"
+                  name="nom"
+                  value={formData.nom}
+                  onChange={handleChange}
+                  autoComplete="family-name"
+                  required
+                />
+              </div>
+              <div className={styles.mobileField}>
+                <label className={styles.mobileLabel} htmlFor="m-prenom">Prénom *</label>
+                <input
+                  id="m-prenom"
+                  className={styles.mobileInput}
+                  type="text"
+                  name="prenom"
+                  value={formData.prenom}
+                  onChange={handleChange}
+                  autoComplete="given-name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.mobileField}>
+              <label className={styles.mobileLabel} htmlFor="m-email">Email *</label>
+              <input
+                id="m-email"
+                className={styles.mobileInput}
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                autoComplete="email"
+                inputMode="email"
+                required
+              />
+            </div>
+
+            <div className={styles.mobileField}>
+              <label className={styles.mobileLabel} htmlFor="m-whatsapp">WhatsApp *</label>
+              <input
+                id="m-whatsapp"
+                className={styles.mobileInput}
+                type="tel"
+                name="whatssap"
+                value={formData.whatssap}
+                onChange={handleChange}
+                inputMode="tel"
+                placeholder="06 00 00 00 00"
+                required
+              />
+              <div className={styles.mobileHint}>On te contactera ici si tu es sélectionné(e).</div>
+            </div>
+
+            <div className={styles.mobileRow}>
+              <div className={styles.mobileField}>
+                <label className={styles.mobileLabel} htmlFor="m-age">Âge *</label>
+                <input
+                  id="m-age"
+                  className={styles.mobileInput}
+                  type="number"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  min={0}
+                  inputMode="numeric"
+                  required
+                />
+              </div>
+
+              <div className={styles.mobileField}>
+                <label className={styles.mobileLabel} htmlFor="m-ville">Ville *</label>
+                <div className={styles.mobileCityWrap}>
+                  <input
+                    id="m-ville"
+                    className={styles.mobileInput}
+                    type="text"
+                    name="ville"
+                    placeholder="Paris (75001)"
+                    value={formData.ville}
+                    onChange={handleCityChange}
+                    required
+                    autoComplete="off"
+                  />
+                  {showSuggestions && citySuggestions.length > 0 && (
+                    <ul className={styles.suggestionsList}>
+                      {citySuggestions.map((city, index) => (
+                        <li
+                          key={`${city.code}-${index}`}
+                          className={styles.suggestionItem}
+                          onClick={() => selectCity(city)}
+                        >
+                          {city.nom} ({city.codesPostaux[0]})
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {!isCityValid && formData.ville?.length > 0 && (
+                  <div className={styles.mobileWarn}>Choisis une ville dans la liste.</div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.mobileField}>
+              <label className={styles.mobileLabel} htmlFor="m-tiktok">TikTok</label>
+              <input
+                id="m-tiktok"
+                className={styles.mobileInput}
+                type="url"
+                name="tiktok"
+                value={formData.tiktok}
+                onChange={handleChange}
+                inputMode="url"
+                placeholder="https://tiktok.com/@..."
+              />
+            </div>
+            <div className={styles.mobileField}>
+              <label className={styles.mobileLabel} htmlFor="m-instagram">Instagram</label>
+              <input
+                id="m-instagram"
+                className={styles.mobileInput}
+                type="url"
+                name="instagram"
+                value={formData.instagram}
+                onChange={handleChange}
+                inputMode="url"
+                placeholder="https://instagram.com/..."
+              />
+            </div>
+          </div>
+        )}
+
+        {formStep === 2 && (
+          <div className={styles.mobileCard}>
+            <h4 className={styles.mobileCardTitle}>Ta présentation *</h4>
+            <div className={styles.mobileField}>
+              <textarea
+                className={styles.mobileTextarea}
+                name="presentation"
+                placeholder="Pourquoi tu veux rejoindre Queen House ? Tes talents, tes rêves… (500 caractères max)"
+                value={formData.presentation}
+                onChange={handleChange}
+                maxLength={500}
+                rows={8}
+                required
+              />
+              <div className={styles.mobileMetaRow}>
+                <span className={styles.mobileHint}>Sois naturel, on veut te connaître.</span>
+                <span className={styles.mobileCount}>{formData.presentation.length}/500</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {formStep === 3 && (
+          <div className={styles.mobileCard}>
+            <h4 className={styles.mobileCardTitle}>Tes médias (max 5 + 5)</h4>
+
+            <div className={styles.mobileUploadBox}>
+              <div className={styles.mobileUploadTop}>
+                <div className={styles.mobileUploadTitle}>Photos</div>
+                <div className={styles.mobileUploadCount}>{formData.photos?.length || 0}/5</div>
+              </div>
+              <input
+                className={styles.mobileFileInput}
+                type="file"
+                name="photos"
+                accept="image/*"
+                multiple
+                onChange={handleChange}
+              />
+              <div className={styles.mobileSlots} aria-label="Aperçu des photos">
+                {[0, 1, 2, 3, 4].map((index) => {
+                  const photo = formData.photos?.[index];
+                  const url = previews[`photo${index + 1}`];
+                  return (
+                    <div
+                      key={`m-photo-slot-${index}`}
+                      className={`${styles.mobileSlot} ${url ? styles.mobileSlotFilled : ''}`}
+                      title={photo?.name || `Photo ${index + 1}`}
+                    >
+                      {url ? (
+                        <img src={url} alt={photo?.name || `Photo ${index + 1}`} className={styles.mobileSlotMedia} />
+                      ) : (
+                        <span className={styles.mobileSlotPlus}>+</span>
+                      )}
+                      <span className={styles.mobileSlotIndex}>{index + 1}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={styles.mobileUploadBox}>
+              <div className={styles.mobileUploadTop}>
+                <div className={styles.mobileUploadTitle}>Vidéos</div>
+                <div className={styles.mobileUploadCount}>{formData.videos?.length || 0}/5</div>
+              </div>
+              <input
+                className={styles.mobileFileInput}
+                type="file"
+                name="videos"
+                accept="video/*"
+                multiple
+                onChange={handleChange}
+              />
+              <div className={styles.mobileSlots} aria-label="Aperçu des vidéos">
+                {[0, 1, 2, 3, 4].map((index) => {
+                  const video = formData.videos?.[index];
+                  const url = previews[`video${index + 1}`];
+                  return (
+                    <div
+                      key={`m-video-slot-${index}`}
+                      className={`${styles.mobileSlot} ${url ? styles.mobileSlotFilled : ''}`}
+                      title={video?.name || `Vidéo ${index + 1}`}
+                    >
+                      {url ? (
+                        <video src={url} className={styles.mobileSlotMedia} muted playsInline preload="metadata" />
+                      ) : (
+                        <span className={styles.mobileSlotPlus}>+</span>
+                      )}
+                      <span className={styles.mobileSlotIndex}>{index + 1}</span>
+                      {url && <span className={styles.mobileSlotPlay}>▶</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.mobileNav}>
+        <button
+          type="button"
+          className={styles.mobileSecondary}
+          onClick={prevStep}
+          disabled={formStep === 1}
+        >
+          ← Retour
+        </button>
+
+        {formStep < 3 ? (
+          <button type="button" className={styles.mobilePrimary} onClick={nextStep}>
+            Continuer →
+          </button>
+        ) : (
+          <button type="submit" className={styles.mobilePrimary}>
+            Envoyer
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <div className={styles.page}>
-  <div className={`${styles.header} ${isHeaderHidden ? styles.headerHidden : ''}`}>
-        <div className={styles.logo} onClick={scrollToHome}>
+  <div ref={headerRef} className={`${styles.header} ${isHeaderHidden ? styles.headerHidden : ''}`}>
+        <div className={styles.logo} onClick={goHome}>
           <img className={styles.logoImg} src="/QH.png" alt="Queen House Logo" />
         </div>
         {/* Checkbox for CSS-only burger toggle */}
@@ -250,19 +771,26 @@ export default function Home() {
           <span></span>
         </label>
         <nav className={styles.nav}>
-          <button className={styles.navLink} onClick={scrollToHome}>Accueil</button>
-          <button className={styles.navLink} onClick={scrollToAbout}>À propos</button>
-          <button className={styles.navLink} onClick={openForm}>Candidater</button>
+          <button className={styles.navLink} onClick={goHome}>Accueil</button>
+          <button className={styles.navLink} onClick={goAbout}>À propos</button>
+          <button className={styles.navLink} onClick={goCandidature}>Candidater</button>
         </nav>
       </div>
-      <div className={styles.hero}>
+        <div ref={heroRef} className={styles.hero}>
           <div className={styles.spotlighta}></div>
           <div className={styles.spotlightb}></div>
           <p className={styles.s2}>Saison <span className={styles.deux}>2</span></p>
-          <h1 className={styles.title}>QUEEN<br /><span className={styles.gradientText}>HOUSE</span><span className={styles.v2}>2.0</span></h1>
+          <h1 className={styles.title}>
+            QUEEN
+            <br />
+            <span className={styles.houseLine}>
+              <span className={styles.gradientText}>HOUSE</span>
+              <span className={styles.v2}>2.0</span>
+            </span>
+          </h1>
           <button className={styles.ctaCandidature} onClick={openForm}>Candidater</button>
         </div>
-        <div className={styles.whoWeAre}>
+        <div ref={aboutRef} className={styles.whoWeAre}>
           <h2 className={styles.whoWeAreTitle}><strong>La prod</strong></h2>
 
           <div className={styles.foundersGrid}>
@@ -305,6 +833,16 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Inline form: inside WhoWeAre, just before footer */}
+          <section ref={candidatureRef} id="candidature" className={styles.inlineFormSection} aria-label="Formulaire de candidature">
+            <div className={styles.inlineFormHeader}>
+              <h3 className={styles.inlineFormTitle}>Candidature</h3>
+            </div>
+            <div className={styles.inlineFormCard}>
+              {mobileCandidatureForm}
+            </div>
+          </section>
+
           <footer className={styles.footer}>
             <div className={styles.footerInner}>
               <div className={styles.footerBrand}>
@@ -313,9 +851,9 @@ export default function Home() {
               </div>
 
               <div className={styles.footerLinks}>
-                <button className={styles.footerLink} onClick={scrollToHome}>Accueil</button>
-                <button className={styles.footerLink} onClick={scrollToAbout}>À propos</button>
-                <button className={styles.footerLink} onClick={openForm}>Candidater</button>
+                <button className={styles.footerLink} onClick={goHome}>Accueil</button>
+                <button className={styles.footerLink} onClick={goAbout}>À propos</button>
+                <button className={styles.footerLink} onClick={goCandidature}>Candidater</button>
               </div>
 
               <div className={styles.footerMeta}>
@@ -324,6 +862,8 @@ export default function Home() {
             </div>
           </footer>
         </div>
+
+        {/* Desktop overlay (kept intact); hidden on mobile via CSS */}
         <div
           className={`${styles.formOverlay} ${isFormOpen ? styles.active : ''}`}
           onMouseDown={(e) => {
@@ -331,157 +871,7 @@ export default function Home() {
           }}
         >
           <button className={styles.closeButton} type="button" onClick={closeForm} aria-label="Fermer">&times;</button>
-          <div className={styles.form}>
-            <form onSubmit={handleSubmit} className={styles.formm}>
-            
-            {/* Progress Indicator */}
-            <div className={styles.stepIndicator}>
-              <div className={`${styles.stepDot} ${formStep >= 1 ? styles.active : ''}`}>1</div>
-              <div className={`${styles.stepLine} ${formStep >= 2 ? styles.active : ''}`}></div>
-              <div className={`${styles.stepDot} ${formStep >= 2 ? styles.active : ''}`}>2</div>
-              <div className={`${styles.stepLine} ${formStep >= 3 ? styles.active : ''}`}></div>
-              <div className={`${styles.stepDot} ${formStep >= 3 ? styles.active : ''}`}>3</div>
-            </div>
-
-            {/* Section 1: Infos de base */}
-            {formStep === 1 && (
-              <div className={styles.formSection}>
-                <h3 className={styles.sectionTitle}>Informations Personnelles</h3>
-                <div className={styles.mainInfoGrid}>
-                  <input type="text" name="nom" placeholder="Nom" value={formData.nom} onChange={handleChange} required />
-                  <input type="text" name="prenom" placeholder="Prénom" value={formData.prenom} onChange={handleChange} required />
-                  <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-                  <input type="text" name="whatssap" placeholder="Numéro WhatsApp" value={formData.whatssap} onChange={handleChange} required />
-                  
-                  <input type="number" name="age" placeholder="Âge" value={formData.age} onChange={handleChange} required />
-                  <div className={styles.cityContainer}>
-                    <input 
-                      type="text" 
-                      name="ville" 
-                      placeholder="Ville (ex: Paris 75001)" 
-                      value={formData.ville} 
-                      onChange={handleCityChange} 
-                      required 
-                      autoComplete="off"
-                      style={{width: '100%'}}
-                    />
-                    {showSuggestions && citySuggestions.length > 0 && (
-                      <ul className={styles.suggestionsList}>
-                        {citySuggestions.map((city, index) => (
-                          <li 
-                            key={`${city.code}-${index}`} 
-                            className={styles.suggestionItem}
-                            onClick={() => selectCity(city)}
-                          >
-                            {city.nom} ({city.codesPostaux[0]})
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  <input type="text" name="tiktok" placeholder="Lien TikTok" value={formData.tiktok} onChange={handleChange} />
-                  <input type="text" name="instagram" placeholder="Lien Instagram" value={formData.instagram} onChange={handleChange} />
-                </div>
-              </div>
-            )}
-
-            {/* Section 2: Texte de motivation */}
-            {formStep === 2 && (
-              <div className={styles.formSection}>
-                <h3 className={styles.sectionTitle}>Ta Présentation</h3>
-                <textarea 
-                  name="presentation" 
-                  placeholder="Parle-nous de toi ! Pourquoi tu veux rejoindre Queen House ? Quels sont tes talents, tes rêves ? (500 caractères max)" 
-                  value={formData.presentation} 
-                  onChange={handleChange}
-                  maxLength={500}
-                  className={styles.textarea}
-                  rows={6}
-                />
-                <p className={styles.charCount}>{formData.presentation.length}/500</p>
-              </div>
-            )}
-
-            {/* Section 3: Photos et Vidéos */}
-            {formStep === 3 && (
-              <div className={styles.formSection}>
-                <h3 className={styles.sectionTitle}>Tes Médias</h3>
-                
-                <div className={styles.fileUploadSection}>
-                  <h4 className={styles.fileUploadTitle}>Vos Photos (Max 5)</h4>
-                  <div className={styles.filesGrid}>
-                    <div className={styles.fileInputGroup}>
-                      <label className={styles.fileLabel}>Sélectionnez vos photos</label>
-                      <input 
-                        type="file" 
-                        name="photos" 
-                        accept="image/*" 
-                        multiple
-                        onChange={handleChange} 
-                        className={styles.fileInput} 
-                      />
-                      <p className={styles.fileHint}>Vous pouvez sélectionner jusqu'à 5 photos à la fois</p>
-                      {formData.photos && formData.photos.length > 0 && (
-                        <div className={styles.previewsContainer}>
-                          {formData.photos.map((photo, index) => (
-                            previews[`photo${index + 1}`] && (
-                              <div key={`photo-${index}`} className={styles.previewItem}>
-                                <img src={previews[`photo${index + 1}`]} alt={`Aperçu ${index + 1}`} className={styles.previewImage} />
-                                <span className={styles.photoCount}>{index + 1}</span>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.fileUploadSection}>
-                  <h4 className={styles.fileUploadTitle}>Vos Vidéos (Max 5)</h4>
-                  <div className={styles.filesGrid}>
-                    <div className={styles.fileInputGroup}>
-                      <label className={styles.fileLabel}>Sélectionnez vos vidéos</label>
-                      <input 
-                        type="file" 
-                        name="videos" 
-                        accept="video/*" 
-                        multiple
-                        onChange={handleChange} 
-                        className={styles.fileInput} 
-                      />
-                      <p className={styles.fileHint}>Vous pouvez sélectionner jusqu'à 5 vidéos à la fois</p>
-                      {formData.videos && formData.videos.length > 0 && (
-                        <div className={styles.previewsContainer}>
-                          {formData.videos.map((video, index) => (
-                            previews[`video${index + 1}`] && (
-                              <div key={`video-${index}`} className={styles.previewItem}>
-                                <video src={previews[`video${index + 1}`]} controls className={styles.previewVideo} />
-                                <span className={styles.videoCount}>{index + 1}</span>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className={styles.formNavigation}>
-              {formStep > 1 && (
-                <button type="button" className={styles.prevButton} onClick={prevStep}>← Précédent</button>
-              )}
-              {formStep < 3 ? (
-                <button type="button" className={styles.nextButton} onClick={nextStep}>Suivant →</button>
-              ) : (
-                <button type="submit" className={styles.submitButton}>Envoyer ma candidature</button>
-              )}
-            </div>
-            </form>
-          </div>
+          {desktopCandidatureForm}
         </div>
     </div>
   );
