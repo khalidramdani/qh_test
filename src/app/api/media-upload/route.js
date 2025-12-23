@@ -38,16 +38,9 @@ export async function POST(req) {
       hash: 'do_not_verify',
     });
     const fileUrl = `https://f003.backblazeb2.com/file/${B2_BUCKET_ID}/${encodeURIComponent(fileName)}`;
-    // ...supabase supprimé...
-      .from('candidature_medias')
-      .insert([
-        {
-          candidature_id: candidatureId,
-          type: mediaType,
-          index: mediaIndex,
-          url: fileUrl,
-        },
-      ]);
+    // Ici, il faudrait enregistrer l'URL dans une base de données ou retourner un succès fictif
+    // Exemple de réponse fictive :
+    return NextResponse.json({ url: fileUrl });
     if (error) throw error;
     return NextResponse.json({ fileUrl });
   } catch (error) {
