@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import B2 from 'backblaze-b2';
-import { supabase } from '../../lib/supabase';
+// ...existing code...
 
 const B2_KEY_ID = process.env.B2_KEY_ID;
 const B2_APP_KEY = process.env.B2_APP_KEY;
@@ -38,8 +38,7 @@ export async function POST(req) {
       hash: 'do_not_verify',
     });
     const fileUrl = `https://f003.backblazeb2.com/file/${B2_BUCKET_ID}/${encodeURIComponent(fileName)}`;
-    // Enregistrer l'URL dans Supabase
-    const { error } = await supabase
+    // ...supabase supprimé...
       .from('candidature_medias')
       .insert([
         {

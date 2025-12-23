@@ -1,11 +1,11 @@
-import { supabase } from '../../lib/supabase';
+// ...existing code...
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
   try {
     const data = await req.json();
     // Insérer la candidature sans les médias
-    const { data: insertData, error } = await supabase
+    // ...supabase supprimé...
       .from('candidatures')
       .insert([
         {
