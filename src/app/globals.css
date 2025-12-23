@@ -21,7 +21,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Poppins', sans-serif; /* Changed from Arial/Helvetica to Poppins globally */
+  font-family: 'Poppins', sans-serif; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

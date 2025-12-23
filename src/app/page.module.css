@@ -1,4 +1,4 @@
-/* iPad mini uniquement (portrait et paysage) */
+
 @media (min-width: 768px) and (max-width: 834px) and (min-height: 1023px) {
   .s2 {
     top: 28vh !important;
@@ -6,7 +6,7 @@
 }
 
 .page {
-  background-color: black;
+  background-color: rgb(250, 237, 194);
   color: white;
   min-height: 220vh;
   width: 100vw;
@@ -19,9 +19,9 @@
   overflow-x: hidden;
 }
 .navToggle {
-  display: none; /* hidden checkbox */
+  display: none;
 }
-/* 🔥 Texte surligné en rose (drag / selection) */
+
 .page ::selection {
   background: rgba(255, 95, 183, 0.35);
   color: #fff;
@@ -36,19 +36,71 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  border-radius: 15px;
+  border-radius: 24px;
   width: 90vw;
   height: 10vh;
   position: fixed;
   top: 3vh;
   left: 5vw;
-  background-color: rgba(0, 0, 0, 0.8);
-  box-shadow: rgb(69, 69, 69) 3px 1px 10px;
+  background: linear-gradient(120deg, rgba(255,255,255,0.22) 0%, rgba(165,210,233,0.18) 100%);
+  box-shadow:
+    0 4px 32px 0 rgba(31, 38, 135, 0.25), /* bleu profond diffus */
+    0 1.5px 0 0 rgba(255,255,255,0.18) inset, /* liseré blanc interne */
+    0 0 0 4px rgba(165,210,233,0.12), /* halo bleu clair externe */
+    0 8px 48px 0 rgba(0, 180, 255, 0.10), /* halo cyan diffus */
+    0 2px 24px 0 rgba(255,255,255,0.10); /* lumière douce */
+  backdrop-filter: blur(36px) saturate(220%);
+  -webkit-backdrop-filter: blur(36px) saturate(220%);
+  border: 2px solid rgba(255, 255, 255, 0.45);
   z-index: 1000;
   transition:
     transform 220ms cubic-bezier(.2,.8,.2,1),
     opacity 220ms cubic-bezier(.2,.8,.2,1);
   will-change: transform, opacity;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 24px;
+  background: linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 100%);
+  opacity: 0.7;
+  box-shadow: 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+  mix-blend-mode: lighten;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: 8px;
+  right: 16px;
+  width: 60px;
+  height: 16px;
+  background: rgba(255,255,255,0.25);
+  filter: blur(8px);
+  border-radius: 50px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 20px;
+  background: linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.10) 100%);
+  opacity: 0.7;
+  box-shadow: 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
 }
 
 .headerHidden {
@@ -85,12 +137,12 @@
   background: none;
   border: none;
   color: white;
-  font-size: 1.1rem; /* Slightly larger */
+  font-size: 1.1rem;
   cursor: pointer;
   transition: color 0.3s ease;
-  font-family: 'Poppins', sans-serif; /* Changed to Poppins for better readability */
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  /* Removed italic style for better readability */
+
 }
 
 .navLink:hover {
@@ -110,7 +162,7 @@
   background: radial-gradient(circle at -5% 5%, rgba(255, 91, 183, 0.12) 0%, rgba(255, 91, 183, 0.04) 15%, transparent 35%),
               radial-gradient(circle at 105% 95%, rgba(247, 123, 254, 0.12) 0%, rgba(247, 123, 254, 0.04) 15%, transparent 35%);
   background-size: 200% 200%;
-  background-color: black;
+  background-color: rgb(252, 229, 183);
   animation: subtleCornerMove 15s ease-in-out infinite;
   z-index: 0;
 }
@@ -130,12 +182,12 @@
 .title {
   border-top: solid 1px white;
   border-bottom: solid 1px white;
-  font-family: 'Poppins', sans-serif; /* Changed from Cinzel to Poppins */
-  font-weight: 900; /* Extra bold for title impact */
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
   font-size: 10vw;
-  line-height: 0.8; /* Adjusted line height for Poppins */
+  line-height: 0.8;
   text-align: center;
-  letter-spacing: -0.02em; /* Adjusted letter spacing */
+  letter-spacing: -0.02em;
   padding: 20px 40px;
   position: absolute;
   vertical-align: baseline;
@@ -147,7 +199,7 @@
   will-change: transform;
 }
 
-/* Micro-interaction hover du H1 */
+
 .title:hover {
   transform: scale(1.015);
   letter-spacing: -0.01em;
@@ -158,7 +210,7 @@
     0 0 34px rgba(247, 123, 254, 0.22);
 }
 
-/* Petit "press" quand on clique */
+
 .title:active {
   transform: scale(0.99);
 }
@@ -211,14 +263,14 @@
   font-size: 2vw;
   font-weight: 600;
   color: black;
-  background-color: #ff5fb7;
+  background-color: rgb(165, 210, 233);
   border: none;
   border-radius: 30px;
   cursor: pointer;
   box-shadow: rgba(255, 95, 183, 0.4) 0px 5px 15px;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   transition: padding 0.3s ease, font-size 0.3s ease;
-  font-family: 'Poppins', sans-serif; /* Changed from Cinzel to Poppins */
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   color: white;
 }
@@ -268,7 +320,7 @@
   top: 90vh;
   left: 0;
   right: 0;
-  background-color: black;
+  background-color: rgb(222, 208, 188);
   width: 100%;
   min-height: 130vh;
   height: auto;
@@ -283,7 +335,7 @@
   z-index: 10;
 }
 
-/* Container interne pour éviter le full width dans À propos */
+
 .whoWeAre > * {
   width: min(1100px, 92vw);
 }
@@ -292,7 +344,7 @@
   width: 100vw;
 }
 
-/* Popup formulaire */
+
 .formOverlay {
   position: fixed;
   top: 0;
@@ -455,7 +507,7 @@
   color: #ff5fb7;
 }
 
-/* Inline candidature form inside WhoWeAre */
+
 .inlineFormSection {
   display: none;
   width: 100%;
@@ -494,7 +546,7 @@
   box-sizing: border-box;
 }
 
-/* Mobile form (refonte A→Z) */
+
 .mobileForm {
   width: 100%;
   display: flex;
@@ -828,7 +880,7 @@
   letter-spacing: 0.02em;
 }
 
-/* GROS bouton Candidater mobile uniquement */
+
 @media (max-width: 900px) {
   .ctaCandidature {
     font-size: clamp(1.05rem, 4.5vw, 1.25rem) !important;
@@ -861,9 +913,9 @@
   }
 }
 
-/* Mobile adjustments for Who We Are */
+
 @media (min-width: 769px) and (max-width: 1024px) {
-  /* Header / nav: comfortable tablet sizing */
+  
   .header {
     width: 92vw;
     height: 9vh;
@@ -885,7 +937,7 @@
     font-size: 1rem;
   }
 
-  /* Hero */
+  
   .title {
     font-size: 11.5vw;
     padding: 14px 28px;
@@ -905,7 +957,6 @@
     display: block;
   }
 
-  /* About / founders: keep 3-up clean */
   .whoWeAre {
     top: 86vh;
     padding: 6vh 0 24px;
@@ -929,7 +980,6 @@
     height: clamp(150px, 18vw, 190px);
   }
 
-  /* Footer: remove vw-height and keep buttons inside */
   .footer {
     width: 88vw;
     height: auto;
@@ -969,7 +1019,6 @@
     font-size: 1.55rem;
   }
 
-  /* Mobile: keep nice spacing for the new form */
   .inlineFormCard {
     padding: 12px;
   }
@@ -982,7 +1031,6 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;
   }
-  /* Hero & Header */
   .hero {
     height: 70vh;
     display: grid;
@@ -996,7 +1044,7 @@
   .header {
   width: 95vw;
   padding: 10px 14px;
-  height: 8vh; /* reduced header height on small screens */
+  height: 8vh;
   left: 2.5vw;
   top: 2vh;
   }
@@ -1017,9 +1065,8 @@
     gap: 10px;
   }
 
-  /* Burger menu (CSS-only) */
   .navToggle {
-    display: none; /* hidden checkbox */
+    display: none;
   }
 
   .burger {
@@ -1062,11 +1109,10 @@
     transform: translateY(7px);
   }
 
-  /* Hide nav by default on mobile, show burger */
   .nav {
     position: fixed;
     right: 14px;
-    top: calc(2vh + 8vh - 6px); /* hug the header */
+    top: calc(2vh + 8vh - 6px);
     background: rgba(0,0,0,0.95);
     flex-direction: column;
     gap: 12px;
@@ -1091,7 +1137,7 @@
     font-size: 1rem;
   }
 
-  /* When navToggle is checked, show the nav and animate burger */
+  
   .navToggle:checked + .burger span {
     transform: rotate(45deg);
   }
@@ -1120,7 +1166,7 @@
     padding: 8px 12px;
   }
 
-  /* Saison 2 */
+  
   .s2 {
     margin-top: -50px;
     margin-bottom: 5px;
@@ -1129,7 +1175,7 @@
     justify-self: center;
   }
 
-  /* Title */
+  
   .title {
     font-size: 17vw;
     padding: 8px 20px;
@@ -1162,7 +1208,7 @@
     white-space: nowrap;
   }
 
-  /* CTA Button */
+  
   .ctaCandidature {
     margin-top: 170px;
     padding: 14px 32px;
@@ -1173,7 +1219,7 @@
     justify-self: center;
   }
 
-  /* About Section */
+  
   .whoWeAre {
     padding: 30px 20px;
     height: auto;
@@ -1205,7 +1251,7 @@
     line-height: 1.5;
   }
 
-  /* Text under the 3 influencers (mobile-only polish) */
+  
   .whoAreContent {
     width: 100%;
     max-width: 100%;
@@ -1286,7 +1332,7 @@
     font-size: 0.9rem;
   }
 
-  /* Form */
+  
   .formm {
     width: 98%;
     padding: 16px 10px;
@@ -1334,7 +1380,7 @@
     align-items: center;
   }
 
-  /* Inputs & Textarea */
+  
   .formInput {
     padding: 16px;
     font-size: 1.05rem;
@@ -1353,7 +1399,7 @@
     min-height: 130px;
   }
 
-  /* Buttons */
+  
   .prevButton,
   .nextButton {
     padding: 14px 28px;
@@ -1369,7 +1415,7 @@
     width: 100%;
   }
 
-  /* File Input */
+  
   .fileLabel {
     font-size: 1rem;
   }
@@ -1390,7 +1436,7 @@
     min-width: 100px;
   }
 
-  /* Preview Grid */
+  
   .previewsContainer {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 12px;
@@ -1456,7 +1502,7 @@
     gap: 12px;
   }
 
-  /* Footer */
+  
   .footer {
     padding: 50px 20px;
     gap: 20px;
@@ -1468,7 +1514,7 @@
     padding: 8px 12px;
   }
 
-  /* Step Indicator */
+  
   .stepIndicator {
     gap: 12px;
     margin-bottom: 28px;
@@ -1484,7 +1530,7 @@
     width: 25px;
   }
 
-  /* Form Navigation */
+  
   .formNavigation {
     gap: 12px;
     flex-direction: column;
@@ -1645,8 +1691,8 @@
 }
 
 .fileLabel {
-  color: rgba(255, 255, 255, 0.9); /* Brighter label */
-  font-size: 1rem; /* Larger label */
+  color: rgba(255, 255, 255, 0.9); 
+  font-size: 1rem; 
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
 }
@@ -1668,7 +1714,7 @@
 .fileInput::file-selector-button {
   background: #ff5fb7;
   border: none;
-  padding: 8px 15px; /* Larger button */
+  padding: 8px 15px; 
   border-radius: 5px;
   color: white;
   cursor: pointer;
@@ -1689,8 +1735,8 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.5);
   color: white;
-  font-size: 1.1rem; /* Increased font size */
-  font-family: 'Poppins', sans-serif; /* More readable font */
+  font-size: 1.1rem; 
+  font-family: 'Poppins', sans-serif; 
   font-weight: 500;
   transition: all 0.3s ease;
   width: 100%;
@@ -1705,7 +1751,7 @@
 }
 
 .formm input::placeholder {
-  color: rgba(255, 255, 255, 0.7); /* Lighter placeholder for better contrast */
+  color: rgba(255, 255, 255, 0.7); 
   font-weight: 400;
 }
 
@@ -1811,7 +1857,7 @@
   transform: translateY(0);
 }
 
-/* Step Indicator */
+
 .stepIndicator {
   display: flex;
   align-items: center;
@@ -1858,7 +1904,7 @@
   box-shadow: 0 0 10px rgba(255, 91, 183, 0.3);
 }
 
-/* Form Navigation */
+
 .formNavigation {
   display: flex;
   justify-content: center;
@@ -1937,7 +1983,7 @@
   color: white;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: background 0.2s;
-  font-size: 1rem; /* Larger suggestion text */
+  font-size: 1rem; 
   font-family: 'Poppins', sans-serif;
 }
 
@@ -2028,7 +2074,7 @@
   font-weight: bold;
 }
 
-/* Footer */
+
 .footer {
   left: 0 !important;
   position: static;
@@ -2140,9 +2186,9 @@
   }
 }
 
-/* Tablet (portrait) tuning: iPad mini / Air / Pro */
+
 @media (min-width: 700px) and (max-width: 799px) {
-  /* Use desktop-like nav (no burger panel) */
+  
   .burger {
     display: none;
   }
@@ -2199,7 +2245,7 @@
     top: 76vh;
   }
 
-  /* Non-hero typography scale (iPad mini) */
+  
   .whoWeAreTitle {
     font-size: 2.3rem;
   }
@@ -2329,7 +2375,7 @@
     margin-bottom: 12px;
   }
 
-  /* Non-hero typography scale (iPad Air) */
+  
   .whoWeAreTitle {
     font-size: 2.5rem;
   }
@@ -2462,7 +2508,7 @@
     margin-bottom: 12px;
   }
 
-  /* Non-hero typography scale (iPad Pro) */
+  
   .whoWeAreTitle {
     font-size: 2.6rem;
   }
@@ -2508,7 +2554,7 @@
   }
 }
 
-/* iPad Air/Pro landscape (touch devices): reduce top gap in WhoWeAre */
+
 @media (min-width: 1025px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
   .page {
     min-height: 162vh;
@@ -2525,7 +2571,7 @@
     margin-bottom: 12px;
   }
 
-  /* Non-hero typography scale (iPad landscape) */
+  
   .whoWeAreTitle {
     font-size: 2.6rem;
   }
@@ -2564,4 +2610,9 @@
   .s2 .deux {
     font-size: 1.35em;
   }
+}
+.logoImghero {
+  margin-top: 5vh;
+  position: absolute;
+  height: 70vh;
 }

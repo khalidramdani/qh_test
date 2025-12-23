@@ -256,7 +256,41 @@ export default function Home() {
       alert("Veuillez sélectionner une ville valide dans la liste.");
       return;
     }
-    console.log(formData);
+
+    // Upload photos et vidéos sur Backblaze B2
+    const uploadMedias = async () => {
+      const { uploadToB2 } = await import('./components/b2UploadClient');
+      let uploadedPhotos = [];
+      let uploadedVideos = [];
+      // Photos
+      if (formData.photos && formData.photos.length > 0) {
+        for (const file of formData.photos) {
+          try {
+            const res = await uploadToB2(file);
+            uploadedPhotos.push(res);
+          } catch (err) {
+            alert('Erreur upload photo: ' + file.name);
+            return;
+          }
+        }
+      }
+      // Vidéos
+      if (formData.videos && formData.videos.length > 0) {
+        for (const file of formData.videos) {
+          try {
+            const res = await uploadToB2(file);
+            uploadedVideos.push(res);
+          } catch (err) {
+            alert('Erreur upload vidéo: ' + file.name);
+            return;
+          }
+        }
+      }
+      // Ici tu peux envoyer le reste du formData + les URLs B2 à ton backend si besoin
+      console.log({ ...formData, uploadedPhotos, uploadedVideos });
+      alert('Candidature envoyée avec succès !');
+    };
+    uploadMedias();
   };
 
   const scrollToHome = () => {
@@ -306,7 +340,7 @@ export default function Home() {
   const desktopCandidatureForm = (
     <div className={styles.form}>
       <form onSubmit={handleSubmit} className={styles.formm}>
-        {/* Progress Indicator */}
+        {}
         <div className={styles.stepIndicator}>
           <div className={`${styles.stepDot} ${formStep >= 1 ? styles.active : ''}`}>1</div>
           <div className={`${styles.stepLine} ${formStep >= 2 ? styles.active : ''}`}></div>
@@ -316,7 +350,7 @@ export default function Home() {
         </div>
 
         <div key={formStep} className={styles.stepPane}>
-          {/* Section 1: Infos de base */}
+          {}
           {formStep === 1 && (
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>Informations Personnelles</h3>
@@ -358,7 +392,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Section 2: Texte de motivation */}
+          {}
           {formStep === 2 && (
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>Ta Présentation</h3>
@@ -375,7 +409,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Section 3: Photos et Vidéos */}
+          {}
           {formStep === 3 && (
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>Tes Médias</h3>
@@ -443,7 +477,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* Navigation Buttons */}
+        {}
         <div className={styles.formNavigation}>
           {formStep > 1 && (
             <button type="button" className={styles.prevButton} onClick={prevStep}>← Précédent</button>
@@ -763,9 +797,9 @@ export default function Home() {
     <div className={styles.page}>
   <div ref={headerRef} className={`${styles.header} ${isHeaderHidden ? styles.headerHidden : ''}`}>
         <div className={styles.logo} onClick={goHome}>
-          <img className={styles.logoImg} src="/QH.png" alt="Queen House Logo" />
+          <img className={styles.logoImg} src="/minilogo.png" alt="Queen House Logo" />
         </div>
-        {/* Checkbox for CSS-only burger toggle */}
+        {}
         <input id="nav-toggle" className={styles.navToggle} type="checkbox" aria-label="Toggle navigation" />
         <label htmlFor="nav-toggle" className={styles.burger} aria-hidden="true">
           <span></span>
@@ -779,19 +813,11 @@ export default function Home() {
         <div ref={heroRef} className={styles.hero}>
           <div className={styles.spotlighta}></div>
           <div className={styles.spotlightb}></div>
-          <p className={styles.s2}>Saison <span className={styles.deux}>2</span></p>
-          <h1 className={styles.title}>
-            QUEEN
-            <br />
-            <span className={styles.houseLine}>
-              <span className={styles.gradientText}>HOUSE</span>
-              <span className={styles.v2}>2.0</span>
-            </span>
-          </h1>
+          <img className={styles.logoImghero} src="/LOGOb.png" alt="logo"></img>
           <button className={styles.ctaCandidature} onClick={openForm}>Candidater</button>
         </div>
         <div ref={aboutRef} className={styles.whoWeAre}>
-          <h2 className={styles.whoWeAreTitle}><strong>La prod</strong></h2>
+          <h2 className={styles.whoWeAreTitle}><strong>La Prod</strong></h2>
 
           <div className={styles.foundersGrid}>
             <div className={styles.founderCard}>
@@ -833,7 +859,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Inline form: inside WhoWeAre, just before footer */}
+          {}
           <section ref={candidatureRef} id="candidature" className={styles.inlineFormSection} aria-label="Formulaire de candidature">
             <div className={styles.inlineFormHeader}>
               <h3 className={styles.inlineFormTitle}>Candidature</h3>
@@ -857,13 +883,22 @@ export default function Home() {
               </div>
 
               <div className={styles.footerMeta}>
-                <span className={styles.footerCopy}>© {new Date().getFullYear()} Queen House. Tous droits réservés.</span>
+                <span className={styles.footerCopy} id="qh-easter" style={{cursor:'pointer'}} onClick={() => {
+                  const egg = document.getElementById('qh-egg');
+                  if (egg) egg.style.display = egg.style.display === 'none' ? 'block' : 'none';
+                }}>
+                  © {new Date().getFullYear()} Queen House. Tous droits réservés.
+                </span>
+                <div id="qh-egg" style={{display:'none',marginTop:'12px',textAlign:'center'}}>
+                  <iframe width="220" height="124" src="https://www.youtube.com/embed/QsawdUHCBLk?autoplay=1&mute=1" title="Queen House Hymne" frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen style={{borderRadius:'12px'}}></iframe>
+                  <div style={{fontSize:'0.8em',color:'#ff5fb7',marginTop:'4px'}}>Hymne secret Queen House</div>
+                </div>
               </div>
             </div>
           </footer>
         </div>
 
-        {/* Desktop overlay (kept intact); hidden on mobile via CSS */}
+        {}
         <div
           className={`${styles.formOverlay} ${isFormOpen ? styles.active : ''}`}
           onMouseDown={(e) => {
