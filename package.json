@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
     "backblaze-b2": "^1.7.1",
     "next": "16.1.0",
     "react": "19.2.3",
