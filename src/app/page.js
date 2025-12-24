@@ -286,7 +286,60 @@ export default function Home() {
     // Nouvelle logique : d'abord créer le candidat (DB), récupérer l'id,
     // puis uploader les fichiers en utilisant le candidateId dans le nommage,
     // enfin enregistrer les métadonnées médias côté serveur.
+    async function validateAllMedias() {
+      // Images size
+      if (formData.photos && formData.photos.length > 0) {
+        for (const file of formData.photos) {
+          if (file.size > 5 * 1024 * 1024) {
+            alert('L\'image ' + file.name + ' dépasse 5 Mo. Merci de la compresser avant d\'envoyer.');
+            return false;
+          }
+        }
+      }
+      // Videos duration
+      if (formData.videos && formData.videos.length > 0) {
+        for (const file of formData.videos) {
+          const url = URL.createObjectURL(file);
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.src = url;
+          const ok = await new Promise((resolve) => {
+            let done = false;
+            video.onloadedmetadata = () => {
+              if (!done) {
+                done = true;
+                URL.revokeObjectURL(url);
+                resolve(video.duration <= 10);
+              }
+            };
+            video.onerror = () => {
+              if (!done) {
+                done = true;
+                URL.revokeObjectURL(url);
+                resolve(false);
+              }
+            };
+            setTimeout(() => {
+              if (!done) {
+                done = true;
+                URL.revokeObjectURL(url);
+                resolve(false);
+              }
+            }, 5000);
+          });
+          if (!ok) {
+            alert('La vidéo ' + file.name + ' dépasse 10 secondes ou est illisible.');
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
     const submitSequence = async () => {
+      // Ensure all medias are valid before creating the candidate
+      const allValid = await validateAllMedias();
+      if (!allValid) return; // abort early
       try {
         // 1) Créer le candidat sans médias pour récupérer l'ID
         const respCreate = await fetch('/api/candidature', {
