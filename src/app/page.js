@@ -337,6 +337,31 @@ export default function Home() {
     };
   }, [isFormOpen]);
 
+  // Liquid glass ripple effect on header click
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const handleClick = (e) => {
+      const ripple = document.createElement('div');
+      ripple.style.position = 'absolute';
+      ripple.style.borderRadius = '50%';
+      ripple.style.background = 'rgba(255,255,255,0.6)';
+      ripple.style.width = '20px';
+      ripple.style.height = '20px';
+      ripple.style.transform = 'scale(0)';
+      ripple.style.animation = 'ripple 0.6s linear';
+      ripple.style.left = `${e.offsetX - 10}px`;
+      ripple.style.top = `${e.offsetY - 10}px`;
+      ripple.style.pointerEvents = 'none';
+      header.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    };
+
+    header.addEventListener('click', handleClick);
+    return () => header.removeEventListener('click', handleClick);
+  }, []);
+
   const desktopCandidatureForm = (
     <div className={styles.form}>
       <form onSubmit={handleSubmit} className={styles.formm}>
@@ -814,10 +839,14 @@ export default function Home() {
           <div className={styles.spotlighta}></div>
           <div className={styles.spotlightb}></div>
           <img className={styles.logoImghero} src="/LOGOb.png" alt="logo"></img>
-          <button className={styles.ctaCandidature} onClick={openForm}>Candidater</button>
+          <img src="/CANDIDATER.png" alt="Candidater" className={styles.ctaCandidature} onClick={openForm} />
         </div>
         <div ref={aboutRef} className={styles.whoWeAre}>
-          <h2 className={styles.whoWeAreTitle}><strong>La Prod</strong></h2>
+          <img className={styles.borderTop} src="/border-top.png" alt="Border Top" />
+          <img className={styles.borderTopReverse} src="/border-top.png" alt="Border Top Reverse" />
+          <h2 className={styles.whoWeAreTitle}>
+            <img className={styles.whowearepng} src="/laprod.png" alt="La Prod" style={{maxWidth: '100%', height: 'auto'}} />
+          </h2>
 
           <div className={styles.foundersGrid}>
             <div className={styles.founderCard}>
@@ -854,9 +883,7 @@ export default function Home() {
               Tu as du talent ? Tu rêves de percer sur les réseaux ? Tu veux rejoindre la famille ? C'est ton moment !
             </p>
 
-            <div className={styles.aboutCtaRow}>
-              <button className={styles.aboutCtaButton} onClick={openForm}>Candidater</button>
-            </div>
+              <img src="/CANDIDATER.png" alt="Candidater" className={styles.ctaCandidature2} onClick={openForm} style={{cursor: 'pointer'}} />
           </div>
 
           {}
@@ -868,34 +895,20 @@ export default function Home() {
               {mobileCandidatureForm}
             </div>
           </section>
-
-          <footer className={styles.footer}>
-            <div className={styles.footerInner}>
-              <div className={styles.footerBrand}>
-                <span className={styles.footerLogo}>QUEEN HOUSE</span>
-                <span className={styles.footerSeason}>Saison 2</span>
-              </div>
-
-              <div className={styles.footerLinks}>
-                <button className={styles.footerLink} onClick={goHome}>Accueil</button>
-                <button className={styles.footerLink} onClick={goAbout}>À propos</button>
-                <button className={styles.footerLink} onClick={goCandidature}>Candidater</button>
-              </div>
-
-              <div className={styles.footerMeta}>
-                <span className={styles.footerCopy} id="qh-easter" style={{cursor:'pointer'}} onClick={() => {
-                  const egg = document.getElementById('qh-egg');
-                  if (egg) egg.style.display = egg.style.display === 'none' ? 'block' : 'none';
-                }}>
-                  © {new Date().getFullYear()} Queen House. Tous droits réservés.
-                </span>
-                <div id="qh-egg" style={{display:'none',marginTop:'12px',textAlign:'center'}}>
-                  <iframe width="220" height="124" src="https://www.youtube.com/embed/QsawdUHCBLk?autoplay=1&mute=1" title="Queen House Hymne" frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen style={{borderRadius:'12px'}}></iframe>
-                  <div style={{fontSize:'0.8em',color:'#ff5fb7',marginTop:'4px'}}>Hymne secret Queen House</div>
-                </div>
-              </div>
-            </div>
-          </footer>
+          {/* Nouveau footer liquid glass amélioré */}
+      <footer className={styles.footerNew}>
+        <div className={styles.footerNewInner}>
+          <img src="/minilogo.png" alt="Queen House Logo" className={styles.footerNewLogoImg} />
+          <nav className={styles.footerNewLinks}>
+            <button className={styles.footerNewLink} onClick={goHome}>Accueil</button>
+            <button className={styles.footerNewLink} onClick={goAbout}>À propos</button>
+            <button className={styles.footerNewLink} onClick={goCandidature}>Candidater</button>
+          </nav>
+        </div>
+        <div className={styles.footerNewCopyright}>
+          Queen House - Tous droits réservés
+        </div>
+      </footer>
         </div>
 
         {}
@@ -908,6 +921,17 @@ export default function Home() {
           <button className={styles.closeButton} type="button" onClick={closeForm} aria-label="Fermer">&times;</button>
           {desktopCandidatureForm}
         </div>
+      <footer className={styles.footer}>
+        <div className={styles.logo}>
+          <img className={styles.logoImg} src="/minilogo.png" alt="Queen House Logo" />
+        </div>
+        <nav className={styles.nav}>
+          <button className={styles.navLink} onClick={goHome}>Accueil</button>
+          <button className={styles.navLink} onClick={goAbout}>À propos</button>
+          <button className={styles.navLink} onClick={goCandidature}>Candidater</button>
+        </nav>
+        <span style={{color: '#FFF9E3', fontSize: '0.95rem', marginLeft: '2vw'}}>Queen House - Tous droits réservés</span>
+      </footer>
     </div>
   );
 }
