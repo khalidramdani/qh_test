@@ -1,13 +1,12 @@
-// ...existing code...
-import { NextResponse } from 'next/server';
+import { saveCandidatAndMediasServer } from '../../../lib/supabase-server';
 
 export async function POST(req) {
   try {
-    const data = await req.json();
-    // Ici, il faudrait insérer la candidature dans une base de données ou retourner un succès fictif
-    // Exemple de réponse fictive :
-    return NextResponse.json({ candidatureId: 'mock-id' });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const body = await req.json();
+    const { nom, prenom, age, ville, email, whatssap, tiktok, instagram, motivation, medias } = body;
+    const candidat = await saveCandidatAndMediasServer({ nom, prenom, age, ville, email, whatssap, tiktok, instagram, motivation, medias });
+    return new Response(JSON.stringify({ success: true, candidat }), { status: 200 });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }

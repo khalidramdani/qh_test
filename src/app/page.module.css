@@ -3,7 +3,108 @@
     top: 28vh !important;
   }
 }
+.blurLoad {
+  pointer-events: none;
+  cursor: default !important;
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(180%);
+  z-index: 10000;
+  animation: blurFade 10s ease-out;
+}
+@keyframes blurFade {
+  0% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.onload {
+  height: 100vh;
+  width: 100vw;
+}
+.feuilledroit {
+  pointer-events: none;
+  min-height: 103vh;
+  max-height: 103vh;
+  min-width: 51vw;
+  right: 510vw;
+  position: fixed;
+  top: 0;
+  z-index: 9999999999999999999999999999999999999999999999999999999;
+  animation: feuilleMove 4s ease-in-out infinite;
+  animation: feuilledroitslide 10s ease-in-out;
+}
+.feuillegauche {
+  pointer-events: none;
+  min-height: 103vh;
+  max-height: 103vh;
+  min-width: 51vw;
+  left: -510vw;
+  position: fixed;
+  top: 0;
+  rotate: 180deg;
+  z-index: 99999999999999999999999999999999999999999999999999999999;
+  animation: feuilleMove1 4s ease-in-out infinite;
+  animation: feuillegaucheslide 10s ease-in-out;
 
+}
+@keyframes feuillegaucheslide {
+  0% {
+    left: 0;
+  }
+  10% {
+    left: 0;
+    }
+    15% {
+    left: -210vw;
+    }
+  100% {
+    left: -210vw;
+    }
+}
+@keyframes feuilledroitslide {
+  0% {
+    right: 0;
+  }
+  10% {
+    right: 0;
+    }
+    15% {
+    right: -210vw;
+    }
+  100% {
+    right: -210vw;
+    }
+}
+@keyframes feuilleMove {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(8px) rotate(1deg);
+  }
+}
+@keyframes feuilleMove1 {
+  0%, 100% {
+    transform: translateY(8px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
 .page {
   background-color: #FFF9E3; /* sable clair */
   color: #4FC3F7; /* bleu lagon */
@@ -341,6 +442,7 @@
 .ctaCandidature2:hover {
   transform: scale(1.05);
   opacity: 0.9;
+  box-shadow: #fefe7b 0 0 12px;
 }
 .ctaCandidature:hover {
   transform: scale(1.05);
@@ -398,7 +500,7 @@
   justify-content: center;
   gap: 4vh;
   z-index: 10;
-  background: url('/fondwhoweare.avif') center/cover no-repeat;
+  background: url('/bg_3.jpg') center/cover no-repeat;
 }
 
 
@@ -407,17 +509,11 @@
 }
 
 .footer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 24px 24px 0 0;
   width: 100vw;
-  height: 10vh;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  background: linear-gradient(120deg, rgba(255,224,102,0.22) 0%, rgba(79,195,247,0.18) 100%);
+  position: relative;
+  background-color: transparent !important;
+  background: none !important;
+  /* effet liquid glass */
   box-shadow:
     0 4px 32px 0 rgba(79, 195, 247, 0.25),
     0 1.5px 0 0 rgba(255,224,102,0.18) inset,
@@ -427,40 +523,23 @@
   backdrop-filter: blur(36px) saturate(220%);
   -webkit-backdrop-filter: blur(36px) saturate(220%);
   border: 2px solid rgba(255, 255, 255, 0.45);
-  z-index: 1000;
-  transition:
-    transform 220ms cubic-bezier(.2,.8,.2,1),
-    opacity 220ms cubic-bezier(.2,.8,.2,1);
-  will-change: transform, opacity;
+  border-radius: 24px 24px 0 0;
   overflow: hidden;
-  animation: liquidShimmer 4s ease-in-out infinite;
 }
+
 .footer::before {
   content: "";
   position: absolute;
-  background: linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 100%);
   left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
   border-radius: 24px 24px 0 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 100%);
   opacity: 0.7;
   box-shadow: 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
   mix-blend-mode: lighten;
-}
-.footer::after {
-  content: "";
-  position: absolute;
-  bottom: 8px;
-  position: relative;
-  right: 16px;
-  width: 60px;
-  height: 16px;
-  background: rgba(255,255,255,0.25);
-  filter: blur(8px);
-  border-radius: 50px;
-  opacity: 0.6;
-  pointer-events: none;
+  z-index: 0;
 }
 
 .formOverlay {
@@ -469,7 +548,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(255, 255, 255, 0.5);
   z-index: 2000;
   display: flex;
   justify-content: center;
@@ -484,7 +563,67 @@
   opacity: 1;
   pointer-events: all;
 }
-
+.formFeuilledroit {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-height: 100vh;
+  max-height: 100vh;
+  min-width: 50vw;
+  z-index: -1;
+  animation: dexit 0.2s ease-out forwards;
+}
+.formFeuillegauche {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-height: 100vh;
+  max-height: 100vh;
+  min-width: 50vw;
+  rotate: 180deg;
+  z-index: -1;
+  animation: gexit 0.2s ease-out forwards;
+}
+.formFeuilledroit.active {
+  animation: feuilleDanim 0.2s ease-out forwards;
+}
+.formFeuillegauche.active {
+  animation: feuilleGanim 0.2s ease-out forwards;
+}
+@keyframes feuilleDanim {
+  from {
+    right: -50vw;
+  }
+  to {
+    right: -0vw;
+  }
+}
+@keyframes feuilleGanim {
+  from {
+    left: -50vw;
+  }
+  to {
+    left: 0vw;
+  }
+}
+@keyframes dexit {
+  from {
+    right: 0vw;
+  }
+  to {
+    right: -50vw;
+  }
+}
+@keyframes gexit {
+  from {
+    left: 0vw;
+  }
+  to {
+    left: -50vw;
+  }
+}
 .closeButton {
   position: absolute;
   top: 20px;
@@ -499,7 +638,7 @@
 }
 
 .closeButton:hover {
-  color: #ff5fb7;
+  color: #5fccff;
 }
 .whowearepng {
   margin-top: 20vh;
@@ -872,7 +1011,7 @@
 .mobileFileInput::file-selector-button {
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 91, 183, 0.25);
+  border: 1px solid rgba(255, 196, 0, 0.25);
   background: rgba(255, 255, 255, 0.05);
   color: white;
   cursor: pointer;
@@ -1000,6 +1139,7 @@
 
 
 @media (max-width: 900px) {
+  
   .ctaCandidature {
     font-size: clamp(1.05rem, 4.5vw, 1.25rem) !important;
     padding: 13px 0 !important;
@@ -1119,6 +1259,23 @@
 }
 
 @media (max-width: 768px) {
+  .borderTop {
+    height: 15vh;
+    width: 100vw;
+    top: -85;
+  }
+  .borderTopReverse {
+    top: 0;
+    height: 15vh;
+    width: 100vw;
+  }
+   .logoImghero {
+    top: 300;
+    position: absolute;
+    max-height: 30vh;
+    min-width: 100vw;
+    max-width: 100vw;
+  }
   .inlineFormSection {
     display: block;
     width: 100%;
@@ -1150,7 +1307,10 @@
     gap: 8px;
   }
   .hero {
-    height: 70vh;
+    background: url('/bgmobile.jpg');
+    background-size: 100vw 100vh;
+    background-position: center;
+    height: 100vh;
     display: grid;
     grid-template-rows: auto auto auto 1fr;
     grid-template-columns: 1fr;
@@ -1267,7 +1427,11 @@
   .navToggle:checked + .burger span::after {
     opacity: 0;
   }
-
+  .whowearepng {
+    margin-top: 0vh;
+    margin-bottom: 5vh;
+    max-height: 40vh;
+  }
   .navToggle:checked ~ .nav {
     opacity: 1;
     visibility: visible;
@@ -1328,13 +1492,16 @@
 
   
   .ctaCandidature {
-    margin-top: 170px;
+    margin-top: 50;
     padding: 14px 32px;
     font-size: 3.5vw;
     position: relative;
     z-index: 50;
     grid-row: 3;
     justify-self: center;
+  }
+  .ctaCandidature2 {
+    display: none;
   }
 
   
@@ -1343,7 +1510,7 @@
     height: auto;
     min-height: auto;
     gap: 2vh;
-    top: 66vh;
+    top: 95vh;
     background-color: #000;
     background-image: linear-gradient(
       180deg,
@@ -1675,7 +1842,7 @@
   padding: 40px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 20px;
-  border: 1px solid rgba(255, 91, 183, 0.2);
+  border: 1px solid rgba(224, 255, 152, 0.2);
   backdrop-filter: blur(10px);
   box-shadow: 0 0 30px rgba(255, 91, 183, 0.1);
   max-height: 85vh;
@@ -1795,7 +1962,7 @@
 }
 
 .fileUploadTitle {
-  color: #ff5fb7;
+  color: #eedc16;
   margin-bottom: 15px;
   font-family: 'Cinzel', serif;
   font-size: 1.1rem;
@@ -1816,12 +1983,15 @@
 }
 
 .fileInput {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   padding: 10px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 5px;
   color: white;
   cursor: pointer;
-  width: 100%;
+  min-width: 30vw;
   box-sizing: border-box;
   font-size: 0.9rem;
   font-family: 'Poppins', sans-serif;
@@ -1830,7 +2000,7 @@
 }
 
 .fileInput::file-selector-button {
-  background: #ff5fb7;
+  background: #ffd000;
   border: none;
   padding: 8px 15px; 
   border-radius: 5px;
@@ -1844,7 +2014,7 @@
 }
 
 .fileInput::file-selector-button:hover {
-  background: #f77bfe;
+  background: #fefe7b;
 }
 
 .formm input {
@@ -1863,8 +2033,8 @@
 
 .formm input:focus {
   outline: none;
-  border-color: #ff5fb7;
-  box-shadow: 0 0 10px rgba(255, 91, 183, 0.3);
+  border-color: #f2ff5f;
+  box-shadow: 0 0 10px rgba(236, 255, 91, 0.3);
   background: rgba(0, 0, 0, 0.8);
 }
 
@@ -1878,7 +2048,7 @@
   padding: 15px;
   border-radius: 30px;
   border: none;
-  background: linear-gradient(90deg, #ff5fb7, #f77bfe);
+  background: linear-gradient(90deg, #fdc600, #7ef0ce);
   color: white;
   font-weight: bold;
   font-size: 1.1rem;
@@ -1888,14 +2058,15 @@
 }
 
 .formm button:hover {
+  background-color: #e0e0e0;
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(255, 91, 183, 0.4);
+  box-shadow: 0 5px 20px rgba(112, 248, 255, 0.4);
 }
 
 .formSection {
   padding: 30px;
   background: rgba(20, 20, 20, 0.6);
-  border: 1px solid rgba(255, 91, 183, 0.15);
+  border: 1px solid rgba(255, 241, 91, 0.15);
   border-radius: 15px;
   display: flex;
   flex-direction: column;
@@ -1904,7 +2075,7 @@
 }
 
 .sectionTitle {
-  color: #ff5fb7;
+  color: hsl(58, 92%, 57%);
   font-size: 1.3rem;
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
@@ -1930,8 +2101,8 @@
 
 .textarea:focus {
   outline: none;
-  border-color: #ff5fb7;
-  box-shadow: 0 0 10px rgba(255, 91, 183, 0.3);
+  border-color: #faff5f;
+  box-shadow: 0 0 10px rgba(237, 255, 100, 0.3);
   background: rgba(0, 0, 0, 0.8);
 }
 
@@ -1989,8 +2160,8 @@
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: rgba(255, 91, 183, 0.2);
-  border: 2px solid rgba(255, 91, 183, 0.4);
+  background: rgba(173, 194, 18, 0.2);
+  border: 2px solid rgba(217, 255, 135, 0.4);
   color: rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
@@ -2003,23 +2174,23 @@
 }
 
 .stepDot.active {
-  background: linear-gradient(90deg, #ff5fb7, #f77bfe);
-  border-color: #ff5fb7;
+  background: linear-gradient(90deg, #fdfeb5, #a4b13e);
+  border-color: #c9c90a;
   color: white;
-  box-shadow: 0 0 20px rgba(255, 91, 183, 0.4);
+  box-shadow: 0 0 20px rgba(251, 250, 183, 0.4);
   transform: scale(1.1);
 }
 
 .stepLine {
   width: 40px;
   height: 2px;
-  background: rgba(255, 91, 183, 0.2);
+  background: rgba(234, 255, 192, 0.2);
   transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .stepLine.active {
-  background: linear-gradient(90deg, #ff5fb7, #f77bfe);
-  box-shadow: 0 0 10px rgba(255, 91, 183, 0.3);
+  background: linear-gradient(90deg, #daf09b, #daf09b);
+  box-shadow: 0 0 10px rgba(255, 252, 171, 0.3);
 }
 
 
@@ -2035,9 +2206,9 @@
 .nextButton {
   padding: 15px 40px;
   border-radius: 30px;
-  border: 2px solid rgba(255, 91, 183, 0.5);
+  border: 2px solid rgba(247, 255, 91, 0.5);
   background: transparent;
-  color: #ff5fb7;
+  color: #faff5f;
   font-weight: bold;
   font-size: 1.1rem;
   cursor: pointer;
@@ -2050,27 +2221,27 @@
 
 .prevButton:hover,
 .nextButton:hover {
-  background: rgba(255, 91, 183, 0.2);
-  border-color: #ff5fb7;
+  background: rgba(244, 255, 91, 0.2);
+  border-color: #d4ff5f;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 91, 183, 0.3);
+  box-shadow: 0 5px 15px rgba(244, 255, 91, 0.3);
 }
 
 .prevButton:active,
 .nextButton:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(255, 91, 183, 0.2);
+  box-shadow: 0 2px 10px rgba(255, 241, 91, 0.2);
 }
 
 .nextButton {
-  background: linear-gradient(90deg, rgba(255, 95, 183, 0.8), rgba(247, 123, 254, 0.8));
-  border-color: #ff5fb7;
+  background: linear-gradient(90deg, rgba(255, 247, 95, 0.8), rgba(247, 254, 123, 0.8));
+  border-color: #ffec5f;
   color: white;
 }
 
 .nextButton:hover {
-  background: linear-gradient(90deg, #ff5fb7, #f77bfe);
-  box-shadow: 0 5px 20px rgba(255, 91, 183, 0.4);
+  background: linear-gradient(90deg, #fff75f, #e4fe7b);
+  box-shadow: 0 5px 20px rgba(247, 255, 91, 0.4);
 }
 
 .cityContainer {
@@ -2084,7 +2255,7 @@
   left: 0;
   right: 0;
   background: rgba(20, 20, 20, 0.95);
-  border: 1px solid rgba(255, 91, 183, 0.3);
+  border: 1px solid rgba(250, 255, 91, 0.3);
   border-radius: 0 0 10px 10px;
   max-height: 200px;
   overflow-y: auto;
@@ -2110,8 +2281,8 @@
 }
 
 .suggestionItem:hover {
-  background: rgba(255, 91, 183, 0.2);
-  color: #ff5fb7;
+  background: rgba(238, 207, 50, 0.2);
+  color: hsl(0, 0%, 100%);
 }
 .previewContainer {
   margin-top: 10px;
@@ -2180,7 +2351,7 @@
   position: absolute;
   top: 5px;
   right: 5px;
-  background: rgba(255, 91, 183, 0.9);
+  background: rgba(251, 255, 18, 0.9);
   color: white;
   width: 24px;
   height: 24px;
@@ -2716,60 +2887,4 @@
   margin-top: -20vh;
   position: absolute;
   height: 70vh;
-}
-
-.footerNew {
-  width: 90vw;
-  left: 0;
-  bottom: 0;
-  background: linear-gradient(120deg, rgba(255,224,102,0.22) 0%, rgba(79,195,247,0.18) 100%);
-  box-shadow:
-    0 4px 32px 0 rgba(79, 195, 247, 0.25),
-    0 1.5px 0 0 rgba(255,224,102,0.18) inset,
-    0 0 0 4px rgba(255,91,183,0.12),
-    0 8px 48px 0 rgba(168,230,207,0.10),
-    0 2px 24px 0 rgba(255,255,255,0.10);
-  backdrop-filter: blur(36px) saturate(220%);
-  -webkit-backdrop-filter: blur(36px) saturate(220%);
-  border: 2px solid rgba(255, 255, 255, 0.45);
-  border-radius: 24px 24px 24px 24px;
-  overflow: hidden;
-}
-.footerNewInner {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2vw;
-  padding: 18px 18px;
-}
-.footerNewLogoImg {
-  height: 80px;
-  width: auto;
-}
-.footerNewLinks {
-  display: flex;
-  gap: 2vw;
-}
-.footerNewLink {
-  background: none;
-  border: none;
-  color: #4FC3F7;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 0 12px;
-  transition: color 0.2s;
-}
-.footerNewLink:hover {
-  color: #FF5BB7;
-}
-.footerNewCopyright {
-  text-align: center;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.95rem;
-  color: #FFF9E3;
-  opacity: 0.8;
-  padding-bottom: 8px;
 }

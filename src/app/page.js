@@ -2,9 +2,13 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import { useState, useEffect, useRef } from "react";
+import { FeuilleGauche, FeuilleDroite } from "../components/Feuille";
+import next from "next";
 
 export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [feuilleOut, setFeuilleOut] = useState(false);
 
   const headerRef = useRef(null);
   const heroRef = useRef(null);
@@ -86,6 +90,7 @@ export default function Home() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isCityValid, setIsCityValid] = useState(false);
   const [previews, setPreviews] = useState({});
+  const [rgpdAccepted, setRgpdAccepted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -240,6 +245,16 @@ export default function Home() {
     return true;
   };
 
+  const validateStep3 = () => {
+    // Ici tu peux adapter la validation selon tes besoins
+    // Ex: au moins 1 photo OU 1 vidéo obligatoire
+    if ((!formData.photos || formData.photos.length === 0) && (!formData.videos || formData.videos.length === 0)) {
+      alert('Merci d’ajouter au moins une photo ou une vidéo.');
+      return false;
+    }
+    return true;
+  };
+
   const nextStep = () => {
     if (formStep === 1 && !validateStep1()) return;
     if (formStep === 2 && !validateStep2()) return;
@@ -252,45 +267,121 @@ export default function Home() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Sécurité supplémentaire : n'autorise la soumission que si on est à l'étape 3
+    if (formStep !== 3) {
+      return;
+    }
     if (!isCityValid) {
       alert("Veuillez sélectionner une ville valide dans la liste.");
       return;
     }
+    if (!validateStep3()) {
+      return;
+    }
+    if (!rgpdAccepted) {
+      alert("Merci d'accepter la politique de confidentialité (RGPD) pour continuer.");
+      return;
+    }
 
-    // Upload photos et vidéos sur Backblaze B2
-    const uploadMedias = async () => {
-      const { uploadToB2 } = await import('./components/b2UploadClient');
-      let uploadedPhotos = [];
-      let uploadedVideos = [];
-      // Photos
-      if (formData.photos && formData.photos.length > 0) {
-        for (const file of formData.photos) {
-          try {
-            const res = await uploadToB2(file);
-            uploadedPhotos.push(res);
-          } catch (err) {
-            alert('Erreur upload photo: ' + file.name);
-            return;
+    // Nouvelle logique : d'abord créer le candidat (DB), récupérer l'id,
+    // puis uploader les fichiers en utilisant le candidateId dans le nommage,
+    // enfin enregistrer les métadonnées médias côté serveur.
+    const submitSequence = async () => {
+      try {
+        // 1) Créer le candidat sans médias pour récupérer l'ID
+        const respCreate = await fetch('/api/candidature', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nom: formData.nom,
+            prenom: formData.prenom,
+            age: parseInt(formData.age, 10),
+            ville: formData.ville,
+            email: formData.email,
+            whatssap: formData.whatssap,
+            tiktok: formData.tiktok || null,
+            instagram: formData.instagram || null,
+            motivation: formData.presentation
+          })
+        });
+        const created = await respCreate.json();
+        if (!respCreate.ok) throw new Error(created?.error || 'Erreur création candidat');
+        const candidateId = created?.candidat?.id;
+        if (!candidateId) throw new Error('ID candidat introuvable');
+
+        // 2) Uploads to Backblaze using candidateId in filenames
+        const { uploadToB2 } = await import('./components/b2UploadClient');
+        const uploadedMedias = [];
+
+        // Photos
+        if (formData.photos && formData.photos.length > 0) {
+          for (let i = 0; i < formData.photos.length; i++) {
+            const file = formData.photos[i];
+            if (file.size > 5 * 1024 * 1024) {
+              alert('L\'image ' + file.name + ' dépasse 5 Mo. Merci de la compresser avant d\'envoyer.');
+              continue;
+            }
+            const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop() : 'jpg';
+            const desiredName = `${candidateId}-img-${i + 1}.${ext}`;
+            try {
+              const res = await uploadToB2(file, desiredName);
+              uploadedMedias.push({ filename: res.fileName, filetype: true });
+            } catch (err) {
+              alert('Erreur upload photo: ' + file.name);
+              console.error(err);
+              return;
+            }
           }
         }
-      }
-      // Vidéos
-      if (formData.videos && formData.videos.length > 0) {
-        for (const file of formData.videos) {
-          try {
-            const res = await uploadToB2(file);
-            uploadedVideos.push(res);
-          } catch (err) {
-            alert('Erreur upload vidéo: ' + file.name);
-            return;
+
+        // Videos
+        if (formData.videos && formData.videos.length > 0) {
+          for (let i = 0; i < formData.videos.length; i++) {
+            const file = formData.videos[i];
+            const url = URL.createObjectURL(file);
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.src = url;
+            const ok = await new Promise((resolve) => {
+              video.onloadedmetadata = () => {
+                URL.revokeObjectURL(url);
+                resolve(video.duration <= 10);
+              };
+            });
+            if (!ok) {
+              alert('La vidéo ' + file.name + ' dépasse 10 secondes. Merci de la raccourcir avant d\'envoyer.');
+              continue;
+            }
+            const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop() : 'mp4';
+            const desiredName = `${candidateId}-vid-${i + 1}.${ext}`;
+            try {
+              const res = await uploadToB2(file, desiredName);
+              uploadedMedias.push({ filename: res.fileName, filetype: false });
+            } catch (err) {
+              alert('Erreur upload vidéo: ' + file.name);
+              console.error(err);
+              return;
+            }
           }
         }
+
+        // 3) Enregistrer les métadonnées médias côté serveur
+        if (uploadedMedias.length > 0) {
+          const respSaveMedias = await fetch('/api/media', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ candidateId, medias: uploadedMedias })
+          });
+          const dataSave = await respSaveMedias.json();
+          if (!respSaveMedias.ok) throw new Error(dataSave?.error || 'Erreur enregistrement médias');
+        }
+
+        alert('Candidature envoyée avec succès !');
+      } catch (err) {
+        alert('Erreur lors de l\'envoi : ' + (err?.message || err));
       }
-      // Ici tu peux envoyer le reste du formData + les URLs B2 à ton backend si besoin
-      console.log({ ...formData, uploadedPhotos, uploadedVideos });
-      alert('Candidature envoyée avec succès !');
     };
-    uploadMedias();
+    submitSequence();
   };
 
   const scrollToHome = () => {
@@ -498,6 +589,19 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+
+              {/* Ajout RGPD : case à cocher obligatoire avant soumission */}
+              <div className={styles.rgpdContainer} style={{margin: '16px 0'}}>
+                <label style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                  <input
+                    type="checkbox"
+                    checked={rgpdAccepted}
+                    onChange={e => setRgpdAccepted(e.target.checked)}
+                    required
+                  />
+                  J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/rgpd.pdf" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
+                </label>
+              </div>
             </div>
           )}
         </div>
@@ -508,7 +612,17 @@ export default function Home() {
             <button type="button" className={styles.prevButton} onClick={prevStep}>← Précédent</button>
           )}
           {formStep < 3 ? (
-            <button type="button" className={styles.nextButton} onClick={nextStep}>Suivant →</button>
+            <button
+              type="button"
+              className={styles.nextButton}
+              onClick={async () => {
+                // Attente de 2 secondes AVANT de changer d'étape
+                await new Promise(resolve => setTimeout(resolve, 1));
+                setFormStep(formStep + 1);
+              }}
+            >
+              Suivant →
+            </button>
           ) : (
             <button type="submit" className={styles.submitButton}>Envoyer ma candidature</button>
           )}
@@ -819,7 +933,19 @@ export default function Home() {
   );
 
   return (
-    <div className={styles.page}>
+    <>
+      {loading && (
+        <div className={styles.loadingOverlay}>
+          <FeuilleGauche animateOut={feuilleOut} />
+          <FeuilleDroite animateOut={feuilleOut} />
+        </div>
+      )}
+      <div className={styles.page}>
+        <div className={styles.blurLoad}></div>
+        <div className={styles.onload}>
+          <img src="\palmdroit.png" alt="feuille chargement" className={styles.feuilledroit}/>
+          <img src="\palmdroit.png" alt="feuille chargement" className={styles.feuillegauche}/>
+        </div>
   <div ref={headerRef} className={`${styles.header} ${isHeaderHidden ? styles.headerHidden : ''}`}>
         <div className={styles.logo} onClick={goHome}>
           <img className={styles.logoImg} src="/minilogo.png" alt="Queen House Logo" />
@@ -896,31 +1022,6 @@ export default function Home() {
             </div>
           </section>
           {/* Nouveau footer liquid glass amélioré */}
-      <footer className={styles.footerNew}>
-        <div className={styles.footerNewInner}>
-          <img src="/minilogo.png" alt="Queen House Logo" className={styles.footerNewLogoImg} />
-          <nav className={styles.footerNewLinks}>
-            <button className={styles.footerNewLink} onClick={goHome}>Accueil</button>
-            <button className={styles.footerNewLink} onClick={goAbout}>À propos</button>
-            <button className={styles.footerNewLink} onClick={goCandidature}>Candidater</button>
-          </nav>
-        </div>
-        <div className={styles.footerNewCopyright}>
-          Queen House - Tous droits réservés
-        </div>
-      </footer>
-        </div>
-
-        {}
-        <div
-          className={`${styles.formOverlay} ${isFormOpen ? styles.active : ''}`}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) closeForm();
-          }}
-        >
-          <button className={styles.closeButton} type="button" onClick={closeForm} aria-label="Fermer">&times;</button>
-          {desktopCandidatureForm}
-        </div>
       <footer className={styles.footer}>
         <div className={styles.logo}>
           <img className={styles.logoImg} src="/minilogo.png" alt="Queen House Logo" />
@@ -932,6 +1033,21 @@ export default function Home() {
         </nav>
         <span style={{color: '#FFF9E3', fontSize: '0.95rem', marginLeft: '2vw'}}>Queen House - Tous droits réservés</span>
       </footer>
-    </div>
+        </div>
+
+        {}
+        <div
+          className={`${styles.formOverlay} ${isFormOpen ? styles.active : ''}`}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeForm();
+          }}
+        >
+          <img src="/palmdroit.png" alt="feuille fond formulaire" className={`${styles.formFeuilledroit} ${isFormOpen ? styles.active : ''}`}/>
+          <img src="/palmdroit.png" alt="feuille fond formulaire" className={`${styles.formFeuillegauche} ${isFormOpen ? styles.active : ''}`}/>
+          <button className={styles.closeButton} type="button" onClick={closeForm} aria-label="Fermer">&times;</button>
+          {desktopCandidatureForm}
+        </div>
+      </div>
+    </>
   );
 }
