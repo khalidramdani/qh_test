@@ -905,6 +905,18 @@ export default function Home() {
                 })}
               </div>
             </div>
+            {/* RGPD checkbox for mobile */}
+            <div className={styles.rgpdContainer} style={{margin: '16px 0'}}>
+              <label style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                <input
+                  type="checkbox"
+                  checked={rgpdAccepted}
+                  onChange={e => setRgpdAccepted(e.target.checked)}
+                  required
+                />
+                J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/rgpd.pdf" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
+              </label>
+            </div>
           </div>
         )}
       </div>
