@@ -1156,7 +1156,7 @@ export default function Home() {
               La <strong>Queen House</strong> est un concept unique créé par <strong>Benoît Chevalier</strong>.
             </p>
             <p className={styles.whoAreText}>
-              Après le succès phénoménal de la première saison, nous revenons pour une <strong>Saison 2</strong> encore plus grandiose ! Le principe ? Réunir des créateurs de contenu talentueux et passionnés dans une villa de rêve pour vivre une aventure inoubliable.
+              Après le succès phénoménal de la première saison, nous revenons pour une <strong>Saison 2</strong> encore plus grandiose ! Le principe ? Donner l'opportunité à n'importe qui de rejoindre une villa incroyable, créer du contenu et lancer sa carrière d'influenceur dans une aventure folle.
             </p>
             <p className={styles.whoAreText}>
               Tu as du talent ? Tu rêves de percer sur les réseaux ? Tu veux rejoindre la famille ? C'est ton moment !
