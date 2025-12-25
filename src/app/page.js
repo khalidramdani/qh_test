@@ -6,6 +6,24 @@ import { FeuilleGauche, FeuilleDroite } from "../components/Feuille";
 import next from "next";
 
 export default function Home() {
+      // Popup custom
+      const [popupMsg, setPopupMsg] = useState("");
+      const [showPopup, setShowPopup] = useState(false);
+      const showCustomPopup = (msg) => {
+        setPopupMsg(msg);
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 3200);
+      };
+    // Affiche le header si la souris approche du haut de la page (desktop)
+    useEffect(() => {
+      const handleMouseMove = (e) => {
+        if (e.clientY < 60) {
+          setIsHeaderHidden(false);
+        }
+      };
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [feuilleOut, setFeuilleOut] = useState(false);
@@ -36,6 +54,16 @@ export default function Home() {
 
   const openForm = () => {
     closeBurgerMenu();
+    // Block opening if localStorage shows a submission from this device
+    try {
+      const submitted = typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('qh_submitted');
+      if (submitted) {
+        alert('Une candidature a déjà été envoyée depuis cet appareil.');
+        return;
+      }
+    } catch (e) {
+      // ignore
+    }
 
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
       setFormStep(1);
@@ -267,19 +295,49 @@ export default function Home() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Sécurité supplémentaire : n'autorise la soumission que si on est à l'étape 3
-    if (formStep !== 3) {
+    // Vérification étape 3
+    if (formStep !== 3) return;
+
+    // Vérification des champs obligatoires
+    if (!formData.nom || !formData.prenom || !formData.email || !formData.whatssap || !formData.ville || !formData.age || !formData.presentation) {
+      showCustomPopup('Veuillez remplir tous les champs obligatoires (nom, prénom, email, WhatsApp, ville, âge, motivation).');
       return;
     }
+    // Vérification ville
     if (!isCityValid) {
-      alert("Veuillez sélectionner une ville valide dans la liste.");
+      showCustomPopup("Veuillez sélectionner une ville valide dans la liste.");
       return;
     }
-    if (!validateStep3()) {
+    // Vérification au moins une image
+    if (!formData.photos || formData.photos.length < 1) {
+      showCustomPopup('Merci d’ajouter au moins une photo.');
       return;
     }
+    // Vérification RGPD
     if (!rgpdAccepted) {
-      alert("Merci d'accepter la politique de confidentialité (RGPD) pour continuer.");
+      showCustomPopup("Merci d'accepter la politique de confidentialité (RGPD) pour continuer.");
+      return;
+    }
+    // Vérification numéro de téléphone FR
+    const phoneRegex = /^0[1-9](\d{8})$/;
+    if (!phoneRegex.test(formData.whatssap)) {
+      showCustomPopup('Veuillez entrer un numéro de téléphone valide au format français (ex: 0775845689).');
+      return;
+    }
+    // Vérification email
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showCustomPopup('Veuillez entrer une adresse email valide.');
+      return;
+    }
+    // Vérification âge
+    if (isNaN(formData.age) || Number(formData.age) < 18) {
+      showCustomPopup('Vous devez avoir au moins 18 ans pour candidater.');
+      return;
+    }
+    // Vérification motivation
+    if (!formData.presentation || formData.presentation.trim().length === 0) {
+      showCustomPopup('Veuillez remplir votre texte de motivation.');
       return;
     }
 
@@ -355,7 +413,8 @@ export default function Home() {
             tiktok: formData.tiktok || null,
             instagram: formData.instagram || null,
             motivation: formData.presentation
-          })
+          }),
+          credentials: 'same-origin'
         });
         const created = await respCreate.json();
         if (!respCreate.ok) throw new Error(created?.error || 'Erreur création candidat');
@@ -428,6 +487,12 @@ export default function Home() {
           const dataSave = await respSaveMedias.json();
           if (!respSaveMedias.ok) throw new Error(dataSave?.error || 'Erreur enregistrement médias');
         }
+        // mark locally to block further submissions from this device
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem('qh_submitted', String(candidateId));
+          }
+        } catch (e) {}
 
         alert('Candidature envoyée avec succès !');
       } catch (err) {
@@ -999,6 +1064,29 @@ export default function Home() {
 
   return (
     <>
+      {showPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '18px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(255,255,255,0.22)',
+          color: '#ff5fb7',
+          padding: '18px 32px',
+          borderRadius: '18px',
+          boxShadow: '0 4px 32px #0003',
+          zIndex: 9999,
+          fontWeight: 600,
+          fontSize: '1.08rem',
+          maxWidth: '90vw',
+          textAlign: 'center',
+          backdropFilter: 'blur(14px) saturate(180%)',
+          border: '1.5px solid rgba(255,91,183,0.18)',
+          letterSpacing: '0.02em',
+        }}>
+          {popupMsg}
+        </div>
+      )}
       {loading && (
         <div className={styles.loadingOverlay}>
           <FeuilleGauche animateOut={feuilleOut} />
