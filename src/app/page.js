@@ -1126,8 +1126,10 @@ export default function Home() {
         <div ref={heroRef} className={styles.hero}>
           <div className={styles.spotlighta}></div>
           <div className={styles.spotlightb}></div>
-          <img className={styles.logoImghero} src="/LOGOb.png" alt="logo"></img>
+          <div className={styles.logoCta}>
+            <img className={styles.logoImghero} src="/LOGOb.png" alt="logo"></img>
           <img src="/CANDIDATER.png" alt="Candidater" className={styles.ctaCandidature} onClick={openForm} />
+          </div>
         </div>
         <div ref={aboutRef} className={styles.whoWeAre}>
           <img className={styles.borderTop} src="/border-top.png" alt="Border Top" />
