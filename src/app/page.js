@@ -54,7 +54,11 @@ export default function Home() {
 
   const openForm = () => {
     closeBurgerMenu();
-    // (removed localStorage submission block to allow multiple submissions)
+    // Check if already submitted from this device
+    if (typeof window !== 'undefined' && localStorage.getItem('qh_hasSubmitted')) {
+      showCustomPopup('Vous avez déjà soumis une candidature depuis cet appareil.');
+      return;
+    }
 
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
       setFormStep(1);
@@ -248,6 +252,64 @@ export default function Home() {
     setIsCityValid(true);
   };
 
+  const nextStep = async () => {
+    // Validation avant de passer à l'étape suivante
+    if (formStep === 1) {
+      if (!formData.nom.trim()) {
+        showCustomPopup('Veuillez entrer votre nom.');
+        return;
+      }
+      if (!formData.prenom.trim()) {
+        showCustomPopup('Veuillez entrer votre prénom.');
+        return;
+      }
+      if (!formData.email.trim()) {
+        showCustomPopup('Veuillez entrer votre email.');
+        return;
+      }
+      const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      if (!emailRegex.test(formData.email)) {
+        showCustomPopup('Veuillez entrer une adresse email valide.');
+        return;
+      }
+      if (!formData.whatssap.trim()) {
+        showCustomPopup('Veuillez entrer votre numéro WhatsApp.');
+        return;
+      }
+      const phoneRegex = /^0[1-9](\d{8})$/;
+      if (!phoneRegex.test(formData.whatssap)) {
+        showCustomPopup('Veuillez entrer un numéro de téléphone valide au format français (ex: 0775845689).');
+        return;
+      }
+      if (!formData.age || isNaN(formData.age) || Number(formData.age) < 18) {
+        showCustomPopup('Vous devez avoir au moins 18 ans pour candidater.');
+        return;
+      }
+      if (!formData.sexe) {
+        showCustomPopup('Veuillez sélectionner votre sexe.');
+        return;
+      }
+      if (!formData.ville.trim()) {
+        showCustomPopup('Veuillez entrer votre ville.');
+        return;
+      }
+      if (!isCityValid) {
+        showCustomPopup('Veuillez sélectionner une ville valide dans la liste.');
+        return;
+      }
+    } else if (formStep === 2) {
+      if (!formData.presentation.trim()) {
+        showCustomPopup('Veuillez remplir votre texte de motivation.');
+        return;
+      }
+    }
+    setFormStep(formStep + 1);
+  };
+
+  const prevStep = () => {
+    setFormStep(formStep - 1);
+  };
+
   // Validation functions
   const validateStep1 = () => {
     if (!formData.nom || !formData.prenom || !formData.email || !formData.whatssap || !formData.age || !isCityValid) {
@@ -273,16 +335,6 @@ export default function Home() {
       return false;
     }
     return true;
-  };
-
-  const nextStep = () => {
-    if (formStep === 1 && !validateStep1()) return;
-    if (formStep === 2 && !validateStep2()) return;
-    setFormStep(formStep + 1);
-  };
-
-  const prevStep = () => {
-    if (formStep > 1) setFormStep(formStep - 1);
   };
 
   const handleSubmit = (e) => {
@@ -480,9 +532,13 @@ export default function Home() {
           const dataSave = await respSaveMedias.json();
           if (!respSaveMedias.ok) throw new Error(dataSave?.error || 'Erreur enregistrement médias');
         }
-        // (removed localStorage marking of submission)
+        // Mark as submitted to prevent multiple submissions
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('qh_hasSubmitted', 'true');
+        }
 
         alert('Candidature envoyée avec succès !');
+        closeForm(); // Close the form after success
       } catch (err) {
         alert('Erreur lors de l\'envoi : ' + (err?.message || err));
       }
@@ -703,12 +759,13 @@ export default function Home() {
 
               {/* Ajout RGPD : case à cocher obligatoire avant soumission */}
               <div className={styles.rgpdContainer} style={{margin: '16px 0'}}>
-                <label style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                <label className={styles.rgpdLabel}>
                   <input
                     type="checkbox"
                     checked={rgpdAccepted}
                     onChange={e => setRgpdAccepted(e.target.checked)}
                     required
+                    className={styles.rgpdCheckbox}
                   />
                   J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/rgpd.pdf" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
                 </label>
@@ -727,6 +784,56 @@ export default function Home() {
               type="button"
               className={styles.nextButton}
               onClick={async () => {
+                // Validation avant de passer à l'étape suivante
+                if (formStep === 1) {
+                  if (!formData.nom.trim()) {
+                    showCustomPopup('Veuillez entrer votre nom.');
+                    return;
+                  }
+                  if (!formData.prenom.trim()) {
+                    showCustomPopup('Veuillez entrer votre prénom.');
+                    return;
+                  }
+                  if (!formData.email.trim()) {
+                    showCustomPopup('Veuillez entrer votre email.');
+                    return;
+                  }
+                  const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+                  if (!emailRegex.test(formData.email)) {
+                    showCustomPopup('Veuillez entrer une adresse email valide.');
+                    return;
+                  }
+                  if (!formData.whatssap.trim()) {
+                    showCustomPopup('Veuillez entrer votre numéro WhatsApp.');
+                    return;
+                  }
+                  const phoneRegex = /^0[1-9](\d{8})$/;
+                  if (!phoneRegex.test(formData.whatssap)) {
+                    showCustomPopup('Veuillez entrer un numéro de téléphone valide au format français (ex: 0775845689).');
+                    return;
+                  }
+                  if (!formData.age || isNaN(formData.age) || Number(formData.age) < 18) {
+                    showCustomPopup('Vous devez avoir au moins 18 ans pour candidater.');
+                    return;
+                  }
+                  if (!formData.sexe) {
+                    showCustomPopup('Veuillez sélectionner votre sexe.');
+                    return;
+                  }
+                  if (!formData.ville.trim()) {
+                    showCustomPopup('Veuillez entrer votre ville.');
+                    return;
+                  }
+                  if (!isCityValid) {
+                    showCustomPopup('Veuillez sélectionner une ville valide dans la liste.');
+                    return;
+                  }
+                } else if (formStep === 2) {
+                  if (!formData.presentation.trim()) {
+                    showCustomPopup('Veuillez remplir votre texte de motivation.');
+                    return;
+                  }
+                }
                 // Attente de 2 secondes AVANT de changer d'étape
                 await new Promise(resolve => setTimeout(resolve, 1));
                 setFormStep(formStep + 1);
@@ -762,14 +869,32 @@ export default function Home() {
           <button
             type="button"
             className={`${styles.mobilePill} ${formStep === 2 ? styles.mobilePillActive : ''}`}
-            onClick={() => setFormStep(2)}
+            onClick={() => {
+              // Validation étape 1 avant d'aller à 2
+              if (!formData.nom.trim() || !formData.prenom.trim() || !formData.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email) || !formData.whatssap.trim() || !/^0[1-9](\d{8})$/.test(formData.whatssap) || !formData.age || isNaN(formData.age) || Number(formData.age) < 18 || !formData.sexe || !formData.ville.trim() || !isCityValid) {
+                showCustomPopup('Veuillez compléter toutes les informations personnelles avant de continuer.');
+                return;
+              }
+              setFormStep(2);
+            }}
           >
             Présentation
           </button>
           <button
             type="button"
             className={`${styles.mobilePill} ${formStep === 3 ? styles.mobilePillActive : ''}`}
-            onClick={() => setFormStep(3)}
+            onClick={() => {
+              // Validation étapes 1 et 2 avant d'aller à 3
+              if (!formData.nom.trim() || !formData.prenom.trim() || !formData.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email) || !formData.whatssap.trim() || !/^0[1-9](\d{8})$/.test(formData.whatssap) || !formData.age || isNaN(formData.age) || Number(formData.age) < 18 || !formData.sexe || !formData.ville.trim() || !isCityValid) {
+                showCustomPopup('Veuillez compléter toutes les informations personnelles avant de continuer.');
+                return;
+              }
+              if (!formData.presentation.trim()) {
+                showCustomPopup('Veuillez remplir votre présentation avant de continuer.');
+                return;
+              }
+              setFormStep(3);
+            }}
           >
             Médias
           </button>
@@ -1131,7 +1256,7 @@ export default function Home() {
           <img src="/CANDIDATER.png" alt="Candidater" className={styles.ctaCandidature} onClick={openForm} />
           </div>
         </div>
-        <div ref={aboutRef} className={styles.whoWeAre}>
+        <div className={styles.patchwhoweare}><div ref={aboutRef} className={styles.whoWeAre}>
           <img className={styles.borderTop} src="/border-top.png" alt="Border Top" />
           <img className={styles.borderTopReverse} src="/border-top.png" alt="Border Top Reverse" />
           <h2 className={styles.whoWeAreTitle}>
@@ -1211,7 +1336,7 @@ export default function Home() {
           <button className={styles.closeButton} type="button" onClick={closeForm} aria-label="Fermer">&times;</button>
           {desktopCandidatureForm}
         </div>
-      </div>
+      </div></div>
     </>
   );
 }

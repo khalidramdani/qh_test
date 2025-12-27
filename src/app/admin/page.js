@@ -25,6 +25,17 @@ export default function Admin() {
     const imgRef = useRef();
     const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
 
+    const cleanPhone = (phone) => {
+        if (!phone) return '';
+        let cleaned = phone.replace(/\D/g, ''); // remove non-digits
+        if (cleaned.startsWith('0')) {
+            cleaned = '33' + cleaned.slice(1);
+        } else if (!cleaned.startsWith('33')) {
+            cleaned = '33' + cleaned;
+        }
+        return cleaned;
+    };
+
     const openFullScreen = (media) => {
         setFullScreenMedia(media);
         setIsFullScreenOpen(true);
@@ -246,6 +257,7 @@ export default function Admin() {
                                 {c.ville} • {Boolean(c.sexe) ? 'Homme' : 'Femme'}
                             </div>
                             <div className={styles.meta}>{c.motivation}</div>
+                            <div className={styles.meta}>Téléphone: {c.whatssap ? <a href={`https://wa.me/${cleanPhone(c.whatssap)}`} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{c.whatssap}</a> : 'N/A'}</div>
                         </div>
                     </div>
                 ))}
@@ -298,6 +310,7 @@ export default function Admin() {
                                     <p><strong>Ville:</strong> {modalCandidate.ville}</p>
                                     <p><strong>Motivation:</strong> {modalCandidate.motivation}</p>
                                     <p><strong>Sexe:</strong> {Boolean(modalCandidate.sexe) ? 'Homme' : 'Femme'}</p>
+                                    <p><strong>Téléphone:</strong> {modalCandidate.whatssap ? <a href={`https://wa.me/${cleanPhone(modalCandidate.whatssap)}`} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{modalCandidate.whatssap}</a> : 'N/A'}</p>
                                     <div className={styles.modalActions}>
                                         <button className={`${styles.btn} ${modalCandidate.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={() => toggleFavori(modalCandidate.id, !modalCandidate.favoris)}>{modalCandidate.favoris ? "★" : "☆"}</button>
                                         <button className={`${styles.btn} ${modalCandidate.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={() => toggleAContacter(modalCandidate.id, !modalCandidate.acontacter)}>📞</button>
