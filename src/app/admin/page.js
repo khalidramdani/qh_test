@@ -17,10 +17,43 @@ export default function Admin() {
     const [villes, setVilles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalCandidate, setModalCandidate] = useState(null);
-    const [mediaUrls, setMediaUrls] = useState({});
     const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+    const [isEnlarged, setIsEnlarged] = useState(false);
+    const [fullScreenMedia, setFullScreenMedia] = useState(null);
     const router = useRouter();
     const [headerMinimized, setHeaderMinimized] = useState(false);
+    const imgRef = useRef();
+    const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
+
+    const openFullScreen = (media) => {
+        setFullScreenMedia(media);
+        setIsFullScreenOpen(true);
+    };
+
+    const closeFullScreen = () => {
+        setIsFullScreenOpen(false);
+        setTimeout(() => setFullScreenMedia(null), 300);
+    };
+
+    const handleImageLoad = () => {
+        const img = imgRef.current;
+        if (!img) return;
+        const { naturalWidth, naturalHeight } = img;
+        const ratio = naturalWidth / naturalHeight;
+        const maxW = window.innerWidth * 0.9;
+        const maxH = window.innerHeight * 0.9;
+        const padding = 64; // 2rem * 16 * 2
+        const availableW = maxW - padding;
+        const availableH = maxH - padding;
+        const scaleW = availableW / naturalWidth;
+        const scaleH = availableH / naturalHeight;
+        const scale = Math.min(scaleW, scaleH, 1);
+        const w = naturalWidth * scale;
+        const h = naturalHeight * scale;
+        const container = img.parentElement;
+        container.style.width = (w + padding) + 'px';
+        container.style.height = (h + padding) + 'px';
+    };
 
     useEffect(() => {
         document.body.classList.add('admin-page');
@@ -91,28 +124,7 @@ export default function Admin() {
         return () => obs.disconnect();
     }, [filtered]);
 
-    // when modal opens, resolve all media URLs for that candidate
-    useEffect(() => {
-        if (!modalCandidate) return;
-        let cancelled = false;
-        async function fetchUrls() {
-            const map = {};
-            for (const m of (modalCandidate.medias || [])) {
-                try {
-                    const resp = await fetch(`/api/media-url?file=${encodeURIComponent(m.filename)}`);
-                    if (!resp.ok) continue;
-                    const j = await resp.json();
-                    map[m.filename] = j.url;
-                } catch (e) {
-                    // ignore
-                }
-            }
-            if (!cancelled) setMediaUrls(map);
-        }
-        setMediaUrls({});
-        fetchUrls();
-        return () => { cancelled = true; };
-    }, [modalCandidate]);
+    // when modal opens, no need to fetch URLs as they are already in the data
 
     // Scroll listener for header minimization on mobile
     useEffect(() => {
@@ -226,14 +238,14 @@ export default function Admin() {
                 {loading ? <div>Chargement...</div> : filtered.length === 0 ? <div className={styles.aucuneCandidature}>Aucune candidature...</div> : visible.map(c => (
                     <div key={c.id} className={styles.card} onClick={() => { setModalCandidate(c); setActiveMediaIndex(0); }}>
                         <img src={c.image} alt={`${c.prenom} ${c.nom}`} className={styles.cardImg} />
-                        <h4>{c.prenom} {c.nom}</h4>
-                        <div className={styles.meta}>
-                            {c.ville} • {Boolean(c.sexe) ? 'Homme' : 'Femme'}
-                        </div>
-                        <div className={styles.meta}>{c.motivation}</div>
-                        <div className={styles.cardActions}>
-                            <button className={`${styles.btn} ${c.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={(e) => { e.stopPropagation(); toggleFavori(c.id, !c.favoris); }}>{c.favoris ? "★ Favori" : "☆ Favori"}</button>
-                            <button className={`${styles.btn} ${c.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={(e) => { e.stopPropagation(); toggleAContacter(c.id, !c.acontacter); }}>{c.acontacter ? "À contacter ✔" : "À contacter"}</button>
+                        <button className={`${styles.btnFavoris} ${c.favoris ? styles.btnFavorisActive : ''} ${styles.btnFavorisTopRight}`} onClick={(e) => { e.stopPropagation(); toggleFavori(c.id, !c.favoris); }}>★</button>
+                        <button className={`${styles.btnContact} ${c.acontacter ? styles.btnContactActive : ''}`} onClick={(e) => { e.stopPropagation(); toggleAContacter(c.id, !c.acontacter); }}>📞</button>
+                        <div className={styles.cardOverlay}>
+                            <h4>{c.prenom} {c.nom}</h4>
+                            <div className={styles.meta}>
+                                {c.ville} • {Boolean(c.sexe) ? 'Homme' : 'Femme'}
+                            </div>
+                            <div className={styles.meta}>{c.motivation}</div>
                         </div>
                     </div>
                 ))}
@@ -242,54 +254,67 @@ export default function Admin() {
                 {modalCandidate && (
                     <div className={styles.modalOverlay} onClick={() => setModalCandidate(null)}>
                         <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+                            <button className={styles.modalClose} onClick={() => setModalCandidate(null)}>✕</button>
                             <div className={styles.modalBody}>
                                 <div className={styles.mediaViewer}>
                                     {/* main media */}
                                     {modalCandidate.medias && modalCandidate.medias.length > 0 ? (
-                                        mediaUrls[modalCandidate.medias[activeMediaIndex]?.filename] ? (
+                                        modalCandidate.medias[activeMediaIndex].url ? (
                                             modalCandidate.medias[activeMediaIndex].filetype ? (
-                                                <img src={mediaUrls[modalCandidate.medias[activeMediaIndex].filename]} alt="media" />
+                                                <img src={modalCandidate.medias[activeMediaIndex].url} alt="media" onClick={() => openFullScreen(modalCandidate.medias[activeMediaIndex])} style={{cursor: 'pointer'}} />
                                             ) : (
-                                                <video src={mediaUrls[modalCandidate.medias[activeMediaIndex].filename]} controls preload="metadata" />
+                                                <video src={modalCandidate.medias[activeMediaIndex].url} controls preload="metadata" onClick={() => openFullScreen(modalCandidate.medias[activeMediaIndex])} style={{cursor: 'pointer'}} />
                                             )
                                         ) : (
                                             <div>Chargement média...</div>
                                         )
                                     ) : (
-                                        <img src={modalCandidate.image} alt="primary" />
+                                        <img src={modalCandidate.image} alt="primary" onClick={() => openFullScreen({url: modalCandidate.image, filetype: true})} style={{cursor: 'pointer'}} />
                                     )}
                                     {/* thumbnails */}
                                     <div className={styles.thumbs}>
                                         {/* Images */}
+                                        <div className={styles.thumbGroupTitle}>Images</div>
                                         <div className={styles.thumbGroup}>
                                             {(modalCandidate.medias || []).filter(m => m.filetype).map((m, i) => (
                                                 <button key={m.filename} className={styles.thumbBtn} onClick={() => setActiveMediaIndex(modalCandidate.medias.indexOf(m))}>
-                                                    <img src={mediaUrls[m.filename] || modalCandidate.image} alt={m.filename} />
+                                                    <img src={m.url || modalCandidate.image} alt={m.filename} />
                                                 </button>
                                             ))}
                                         </div>
                                         {/* Videos */}
+                                        <div className={styles.thumbGroupTitle}>Vidéos</div>
                                         <div className={styles.thumbGroup}>
                                             {(modalCandidate.medias || []).filter(m => !m.filetype).map((m, i) => (
                                                 <button key={m.filename} className={`${styles.thumbBtn} ${styles.thumbBtnVideo}`} onClick={() => setActiveMediaIndex(modalCandidate.medias.indexOf(m))}>
-                                                <video src={mediaUrls[m.filename]} muted preload="metadata" className={styles.thumbVideo} />
+                                                <video src={m.url} muted preload="metadata" poster="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3e%3crect width='80' height='80' fill='%23000'/%3e%3cpolygon points='30,20 60,40 30,60' fill='%23fff'/%3e%3c/svg%3e" className={styles.thumbVideo} />
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
                                 <div className={styles.details}>
-                                    <button className={styles.modalClose} onClick={() => setModalCandidate(null)}>✕</button>
                                     <h3>{modalCandidate.prenom} {modalCandidate.nom}</h3>
                                     <p><strong>Ville:</strong> {modalCandidate.ville}</p>
                                     <p><strong>Motivation:</strong> {modalCandidate.motivation}</p>
                                     <p><strong>Sexe:</strong> {Boolean(modalCandidate.sexe) ? 'Homme' : 'Femme'}</p>
                                     <div className={styles.modalActions}>
-                                        <button className={`${styles.btn} ${modalCandidate.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={() => toggleFavori(modalCandidate.id, !modalCandidate.favoris)}>{modalCandidate.favoris ? "★ Favori" : "☆ Favori"}</button>
-                                        <button className={`${styles.btn} ${modalCandidate.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={() => toggleAContacter(modalCandidate.id, !modalCandidate.acontacter)}>{modalCandidate.acontacter ? "À contacter ✔" : "À contacter"}</button>
+                                        <button className={`${styles.btn} ${modalCandidate.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={() => toggleFavori(modalCandidate.id, !modalCandidate.favoris)}>{modalCandidate.favoris ? "★" : "☆"}</button>
+                                        <button className={`${styles.btn} ${modalCandidate.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={() => toggleAContacter(modalCandidate.id, !modalCandidate.acontacter)}>📞</button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+                {fullScreenMedia && (
+                    <div className={`${styles.fullScreenOverlay} ${isFullScreenOpen ? styles.visible : ''}`} onClick={() => closeFullScreen()}>
+                        <div className={styles.fullScreenContent} onClick={(e) => e.stopPropagation()}>
+                            {fullScreenMedia.filetype ? (
+                                <img ref={imgRef} onLoad={handleImageLoad} src={fullScreenMedia.url} alt="full screen" onClick={() => closeFullScreen()} style={{cursor: 'pointer'}} />
+                            ) : (
+                                <video src={fullScreenMedia.url} controls onClick={(e) => e.stopPropagation()} />
+                            )}
                         </div>
                     </div>
                 )}
