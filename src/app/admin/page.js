@@ -17,7 +17,7 @@ export default function Admin() {
     const [villes, setVilles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalCandidate, setModalCandidate] = useState(null);
-    const [mediaUrls, setMediaUrls] = useState({}); // Kept for backward compatibility but no longer used
+    const [mediaUrls, setMediaUrls] = useState({});
     const [activeMediaIndex, setActiveMediaIndex] = useState(0);
     const router = useRouter();
     const [headerMinimized, setHeaderMinimized] = useState(false);
@@ -91,8 +91,28 @@ export default function Admin() {
         return () => obs.disconnect();
     }, [filtered]);
 
-    // Media URLs are now resolved server-side in admin-candidatures API
-    // No need for client-side resolution anymore
+    // when modal opens, resolve all media URLs for that candidate
+    useEffect(() => {
+        if (!modalCandidate) return;
+        let cancelled = false;
+        async function fetchUrls() {
+            const map = {};
+            for (const m of (modalCandidate.medias || [])) {
+                try {
+                    const resp = await fetch(`/api/media-url?file=${encodeURIComponent(m.filename)}`);
+                    if (!resp.ok) continue;
+                    const j = await resp.json();
+                    map[m.filename] = j.url;
+                } catch (e) {
+                    // ignore
+                }
+            }
+            if (!cancelled) setMediaUrls(map);
+        }
+        setMediaUrls({});
+        fetchUrls();
+        return () => { cancelled = true; };
+    }, [modalCandidate]);
 
     // Scroll listener for header minimization on mobile
     useEffect(() => {
@@ -202,17 +222,18 @@ export default function Admin() {
                     onChange={e => setSearch(e.target.value)}
                 />
             </div>
-            <div className={`${styles.content} ${headerMinimized ? styles.contentWithMiniHeader : ''}`}>
+            <div className={styles.content}>
                 {loading ? <div>Chargement...</div> : filtered.length === 0 ? <div className={styles.aucuneCandidature}>Aucune candidature...</div> : visible.map(c => (
-                    <div key={c.id} className={styles.card} onClick={() => { setModalCandidate(c); setActiveMediaIndex(0); }} style={{backgroundImage: `url(${c.image})`}}>
-                        <button className={`${styles.btnFavoris} ${styles.btnFavorisTopRight} ${c.favoris ? styles.btnFavorisActive : ''}`} onClick={(e) => { e.stopPropagation(); toggleFavori(c.id, !c.favoris); }}>{c.favoris ? "★" : "☆"}</button>
-                        <button className={`${styles.btnContact} ${c.acontacter ? styles.btnContactActive : ''}`} onClick={(e) => { e.stopPropagation(); toggleAContacter(c.id, !c.acontacter); }}>📞</button>
-                        <div className={styles.cardOverlay}>
-                            <h4>{c.prenom} {c.nom}</h4>
-                            <div className={styles.meta}>
-                                {c.ville} • {Boolean(c.sexe) ? 'Homme' : 'Femme'}
-                            </div>
-                            <div className={styles.meta}>{c.motivation}</div>
+                    <div key={c.id} className={styles.card} onClick={() => { setModalCandidate(c); setActiveMediaIndex(0); }}>
+                        <img src={c.image} alt={`${c.prenom} ${c.nom}`} className={styles.cardImg} />
+                        <h4>{c.prenom} {c.nom}</h4>
+                        <div className={styles.meta}>
+                            {c.ville} • {Boolean(c.sexe) ? 'Homme' : 'Femme'}
+                        </div>
+                        <div className={styles.meta}>{c.motivation}</div>
+                        <div className={styles.cardActions}>
+                            <button className={`${styles.btn} ${c.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={(e) => { e.stopPropagation(); toggleFavori(c.id, !c.favoris); }}>{c.favoris ? "★ Favori" : "☆ Favori"}</button>
+                            <button className={`${styles.btn} ${c.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={(e) => { e.stopPropagation(); toggleAContacter(c.id, !c.acontacter); }}>{c.acontacter ? "À contacter ✔" : "À contacter"}</button>
                         </div>
                     </div>
                 ))}
@@ -225,11 +246,11 @@ export default function Admin() {
                                 <div className={styles.mediaViewer}>
                                     {/* main media */}
                                     {modalCandidate.medias && modalCandidate.medias.length > 0 ? (
-                                        modalCandidate.medias[activeMediaIndex]?.url ? (
+                                        mediaUrls[modalCandidate.medias[activeMediaIndex]?.filename] ? (
                                             modalCandidate.medias[activeMediaIndex].filetype ? (
-                                                <img src={modalCandidate.medias[activeMediaIndex].url} alt="media" />
+                                                <img src={mediaUrls[modalCandidate.medias[activeMediaIndex].filename]} alt="media" />
                                             ) : (
-                                                <video src={modalCandidate.medias[activeMediaIndex].url} controls preload="metadata" />
+                                                <video src={mediaUrls[modalCandidate.medias[activeMediaIndex].filename]} controls preload="metadata" />
                                             )
                                         ) : (
                                             <div>Chargement média...</div>
@@ -241,19 +262,17 @@ export default function Admin() {
                                     <div className={styles.thumbs}>
                                         {/* Images */}
                                         <div className={styles.thumbGroup}>
-                                            <h5 className={styles.thumbGroupTitle}>Images</h5>
                                             {(modalCandidate.medias || []).filter(m => m.filetype).map((m, i) => (
                                                 <button key={m.filename} className={styles.thumbBtn} onClick={() => setActiveMediaIndex(modalCandidate.medias.indexOf(m))}>
-                                                    <img src={m.url || modalCandidate.image} alt={m.filename} />
+                                                    <img src={mediaUrls[m.filename] || modalCandidate.image} alt={m.filename} />
                                                 </button>
                                             ))}
                                         </div>
                                         {/* Videos */}
                                         <div className={styles.thumbGroup}>
-                                            <h5 className={styles.thumbGroupTitle}>Videos</h5>
                                             {(modalCandidate.medias || []).filter(m => !m.filetype).map((m, i) => (
                                                 <button key={m.filename} className={`${styles.thumbBtn} ${styles.thumbBtnVideo}`} onClick={() => setActiveMediaIndex(modalCandidate.medias.indexOf(m))}>
-                                                <video src={m.url} muted preload="metadata" className={styles.thumbVideo} />
+                                                <video src={mediaUrls[m.filename]} muted preload="metadata" className={styles.thumbVideo} />
                                                 </button>
                                             ))}
                                         </div>
@@ -261,12 +280,14 @@ export default function Admin() {
                                 </div>
                                 <div className={styles.details}>
                                     <button className={styles.modalClose} onClick={() => setModalCandidate(null)}>✕</button>
-                                    <button className={`${styles.btnFavoris} ${styles.btnFavorisModalTopRight} ${modalCandidate.favoris ? styles.btnFavorisActive : ''}`} onClick={() => toggleFavori(modalCandidate.id, !modalCandidate.favoris)}>{modalCandidate.favoris ? "★" : "☆"}</button>
-                                    <button className={`${styles.btnContact} ${styles.btnContactModalTopRight} ${modalCandidate.acontacter ? styles.btnContactActive : ''}`} onClick={() => toggleAContacter(modalCandidate.id, !modalCandidate.acontacter)}>📞</button>
                                     <h3>{modalCandidate.prenom} {modalCandidate.nom}</h3>
                                     <p><strong>Ville:</strong> {modalCandidate.ville}</p>
                                     <p><strong>Motivation:</strong> {modalCandidate.motivation}</p>
                                     <p><strong>Sexe:</strong> {Boolean(modalCandidate.sexe) ? 'Homme' : 'Femme'}</p>
+                                    <div className={styles.modalActions}>
+                                        <button className={`${styles.btn} ${modalCandidate.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={() => toggleFavori(modalCandidate.id, !modalCandidate.favoris)}>{modalCandidate.favoris ? "★ Favori" : "☆ Favori"}</button>
+                                        <button className={`${styles.btn} ${modalCandidate.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={() => toggleAContacter(modalCandidate.id, !modalCandidate.acontacter)}>{modalCandidate.acontacter ? "À contacter ✔" : "À contacter"}</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
