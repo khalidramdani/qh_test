@@ -340,8 +340,8 @@ export default function Home() {
       // Images size
       if (formData.photos && formData.photos.length > 0) {
         for (const file of formData.photos) {
-          if (file.size > 5 * 1024 * 1024) {
-            alert('L\'image ' + file.name + ' dépasse 5 Mo. Merci de la compresser avant d\'envoyer.');
+          if (file.size > 20 * 1024 * 1024) {
+            alert('L\'image ' + file.name + ' dépasse 20 Mo. Merci de la compresser avant d\'envoyer.');
             return false;
           }
         }
@@ -359,7 +359,7 @@ export default function Home() {
               if (!done) {
                 done = true;
                 URL.revokeObjectURL(url);
-                resolve(video.duration <= 10);
+                resolve(video.duration <= 30);
               }
             };
             video.onerror = () => {
@@ -378,7 +378,7 @@ export default function Home() {
             }, 5000);
           });
           if (!ok) {
-            alert('La vidéo ' + file.name + ' dépasse 10 secondes ou est illisible.');
+            alert('La vidéo ' + file.name + ' dépasse 30 secondes ou est illisible.');
             return false;
           }
         }
