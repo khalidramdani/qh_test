@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // This file runs in the app/ (client) bundle — never use the service role key here.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Client-side Supabase instance (public anon key)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Supabase instance avec la clé service role (usage serveur uniquement)
+export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 

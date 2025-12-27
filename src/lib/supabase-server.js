@@ -3,24 +3,29 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Debug: ensure service role key is present on server
-if (!supabaseServiceKey) {
-  console.error('Missing SUPABASE_SERVICE_ROLE_KEY in environment (server).');
-} else {
-  const masked = supabaseServiceKey.slice(0, 6) + '...' + supabaseServiceKey.slice(-4);
-  console.log('SUPABASE_SERVICE_ROLE_KEY present (masked):', masked);
+function getSupabaseServer() {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    const msg = 'SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL missing in server environment';
+    console.error(msg);
+    throw new Error(msg);
+  }
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-export const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
+// Lazy client getter to avoid throwing at module import time
+export function supabaseServer() {
+  return getSupabaseServer();
+}
 
 export async function saveCandidatAndMediasServer({
-  nom, prenom, age, ville, email, whatssap, tiktok, instagram, motivation, medias
+  nom, prenom, age, ville, sexe, email, whatssap, tiktok, instagram, motivation, medias
 }) {
   // 1. Insérer le candidat
-  const { data: candidat, error: candidatError } = await supabaseServer
+  const client = getSupabaseServer();
+  const { data: candidat, error: candidatError } = await client
     .from('CANDIDAT')
     .insert([
-      { nom, prenom, age, ville, email, whatssap, tiktok, insta: instagram, motivation }
+      { nom, prenom, age, ville, sexe, email, whatssap, tiktok, insta: instagram, motivation }
     ])
     .select()
     .single();
@@ -32,7 +37,7 @@ export async function saveCandidatAndMediasServer({
       filename: m.filename,
       filetype: m.filetype
     }));
-    const { error: mediaError } = await supabaseServer
+    const { error: mediaError } = await client
       .from('MEDIA')
       .insert(mediasToInsert);
     if (mediaError) throw mediaError;
@@ -42,12 +47,13 @@ export async function saveCandidatAndMediasServer({
 
 export async function insertMediasForCandidate(candidateId, medias = []) {
   if (!medias || medias.length === 0) return;
+  const client = getSupabaseServer();
   const mediasToInsert = medias.map(m => ({
     id_candidat: candidateId,
     filename: m.filename,
     filetype: m.filetype
   }));
-  const { error } = await supabaseServer.from('MEDIA').insert(mediasToInsert);
+  const { error } = await client.from('MEDIA').insert(mediasToInsert);
   if (error) throw error;
   return true;
 }

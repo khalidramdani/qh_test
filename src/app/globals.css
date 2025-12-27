@@ -18,6 +18,17 @@ body {
   overflow-x: hidden;
 }
 
+.admin-page {
+  overflow: hidden;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    overflow: auto;
+  }
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

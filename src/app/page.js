@@ -54,16 +54,7 @@ export default function Home() {
 
   const openForm = () => {
     closeBurgerMenu();
-    // Block opening if localStorage shows a submission from this device
-    try {
-      const submitted = typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('qh_submitted');
-      if (submitted) {
-        alert('Une candidature a déjà été envoyée depuis cet appareil.');
-        return;
-      }
-    } catch (e) {
-      // ignore
-    }
+    // (removed localStorage submission block to allow multiple submissions)
 
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
       setFormStep(1);
@@ -108,6 +99,7 @@ export default function Home() {
     tiktok: '',
     instagram: '',
     age: '',
+    sexe: '',
     ville: '',
     presentation: '',
     photos: [],
@@ -412,6 +404,7 @@ export default function Home() {
             whatssap: formData.whatssap,
             tiktok: formData.tiktok || null,
             instagram: formData.instagram || null,
+            sexe: formData.sexe === '' ? null : (formData.sexe === 'true'),
             motivation: formData.presentation
           }),
           credentials: 'same-origin'
@@ -487,12 +480,7 @@ export default function Home() {
           const dataSave = await respSaveMedias.json();
           if (!respSaveMedias.ok) throw new Error(dataSave?.error || 'Erreur enregistrement médias');
         }
-        // mark locally to block further submissions from this device
-        try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem('qh_submitted', String(candidateId));
-          }
-        } catch (e) {}
+        // (removed localStorage marking of submission)
 
         alert('Candidature envoyée avec succès !');
       } catch (err) {
@@ -595,6 +583,11 @@ export default function Home() {
                 <input type="text" name="whatssap" placeholder="Numéro WhatsApp" value={formData.whatssap} onChange={handleChange} required />
 
                 <input type="number" name="age" placeholder="Âge" value={formData.age} onChange={handleChange} required />
+                <select name="sexe" value={formData.sexe} onChange={handleChange}>
+                  <option value="">Sexe</option>
+                  <option value="true">Homme</option>
+                  <option value="false">Femme</option>
+                </select>
                 <div className={styles.cityContainer}>
                   <input
                     type="text"
@@ -896,6 +889,22 @@ export default function Home() {
                   <div className={styles.mobileWarn}>Choisis une ville dans la liste.</div>
                 )}
               </div>
+            </div>
+
+            {/* Sexe select (mobile) */}
+            <div className={styles.mobileField}>
+              <label className={styles.mobileLabel} htmlFor="m-sexe">Sexe</label>
+              <select
+                id="m-sexe"
+                name="sexe"
+                className={styles.mobileInput}
+                value={formData.sexe}
+                onChange={handleChange}
+              >
+                <option value="">-- Sélectionner --</option>
+                <option value="true">Homme</option>
+                <option value="false">Femme</option>
+              </select>
             </div>
 
             <div className={styles.mobileField}>
