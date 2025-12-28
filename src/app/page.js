@@ -398,8 +398,8 @@ export default function Home() {
       // Images size
       if (formData.photos && formData.photos.length > 0) {
         for (const file of formData.photos) {
-          if (file.size > 20 * 1024 * 1024) {
-            alert('L\'image ' + file.name + ' dépasse 20 Mo. Merci de la compresser avant d\'envoyer.');
+          if (file.size > 25 * 1024 * 1024) {
+            alert('L\'image ' + file.name + ' dépasse 25 Mo. Merci de la compresser avant d\'envoyer.');
             return false;
           }
         }
@@ -480,8 +480,8 @@ export default function Home() {
         if (formData.photos && formData.photos.length > 0) {
           for (let i = 0; i < formData.photos.length; i++) {
             const file = formData.photos[i];
-            if (file.size > 5 * 1024 * 1024) {
-              alert('L\'image ' + file.name + ' dépasse 5 Mo. Merci de la compresser avant d\'envoyer.');
+            if (file.size > 25 * 1024 * 1024) {
+              alert('L\'image ' + file.name + ' dépasse 25 Mo. Merci de la compresser avant d\'envoyer.');
               continue;
             }
             const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop() : 'jpg';
