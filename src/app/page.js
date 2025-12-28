@@ -58,11 +58,6 @@ export default function Home() {
 
   const openForm = () => {
     closeBurgerMenu();
-    // Check if already submitted from this device
-    if (typeof window !== 'undefined' && localStorage.getItem('qh_hasSubmitted')) {
-      showCustomPopup('Vous avez déjà soumis une candidature depuis cet appareil.');
-      return;
-    }
 
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
       setFormStep(1);
@@ -537,10 +532,6 @@ export default function Home() {
           });
           const dataSave = await respSaveMedias.json();
           if (!respSaveMedias.ok) throw new Error(dataSave?.error || 'Erreur enregistrement médias');
-        }
-        // Mark as submitted to prevent multiple submissions
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('qh_hasSubmitted', 'true');
         }
 
         alert('Candidature envoyée avec succès !');

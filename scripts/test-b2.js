@@ -31,8 +31,8 @@ function loadEnv(envPath) {
   const envPath = path.resolve(__dirname, '..', '.env.local');
   console.log('Loading', envPath);
   const env = loadEnv(envPath);
-  const B2_KEY_ID = env.B2_KEY_ID;
-  const B2_APP_KEY = env.B2_APP_KEY;
+  const B2_KEY_ID = env.B2_MASTER_KEY_ID;
+  const B2_APP_KEY = env.B2_MASTER_APP_KEY;
   const B2_BUCKET_ID = env.B2_BUCKET_ID;
   console.log('B2_KEY_ID present:', Boolean(B2_KEY_ID));
   console.log('B2_APP_KEY present:', Boolean(B2_APP_KEY));

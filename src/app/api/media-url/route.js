@@ -1,8 +1,8 @@
 import B2 from 'backblaze-b2';
 import { requireAdminAuth } from '../../../../src/lib/admin-auth';
 
-const B2_KEY_ID = process.env.B2_KEY_ID;
-const B2_APP_KEY = process.env.B2_APP_KEY;
+const B2_KEY_ID = process.env.B2_MASTER_KEY_ID;
+const B2_APP_KEY = process.env.B2_MASTER_APP_KEY;
 const B2_BUCKET_ID = process.env.B2_BUCKET_ID;
 const B2_BUCKET_NAME = process.env.B2_BUCKET_NAME;
 
