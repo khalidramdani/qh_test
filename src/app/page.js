@@ -741,7 +741,7 @@ export default function Home() {
                     <input
                       type="file"
                       name="videos"
-                      accept="video/*"
+                      accept="video/*,.mov"
                       multiple
                       onChange={handleChange}
                       className={styles.fileInput}
@@ -1137,7 +1137,7 @@ export default function Home() {
                 className={styles.mobileFileInput}
                 type="file"
                 name="videos"
-                accept="video/*"
+                accept="video/*,.mov"
                 multiple
                 onChange={handleChange}
               />
