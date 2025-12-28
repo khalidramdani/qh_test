@@ -270,6 +270,7 @@
 }
 
 .phoneLink {
+  margin: 1dvh;
   color: #00ff88;
   text-decoration: none;
   background: linear-gradient(
@@ -282,7 +283,7 @@
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 255, 136, 0.3);
   border-radius: 12px;
-  padding: 4px 8px;
+  padding: 2px 4px;
   box-shadow:
     inset rgba(255, 255, 255, 0.2) 0 1px 0,
     inset rgba(0, 0, 0, 0.1) 0 -1px 0,

@@ -258,6 +258,8 @@ export default function Admin() {
                             </div>
                             <div className={styles.meta}>{c.motivation}</div>
                             <div className={styles.meta}>Téléphone: {c.whatssap ? <a href={`https://wa.me/${cleanPhone(c.whatssap)}`} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{c.whatssap}</a> : 'N/A'}</div>
+                            {c.tiktok && <div className={styles.meta}>TikTok: <a href={c.tiktok} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{c.tiktok.split('/').pop()}</a></div>}
+                            {c.insta && <div className={styles.meta}>Instagram: <a href={c.insta} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{c.insta.split('/').pop()}</a></div>}
                         </div>
                     </div>
                 ))}
@@ -311,6 +313,8 @@ export default function Admin() {
                                     <p><strong>Motivation:</strong> {modalCandidate.motivation}</p>
                                     <p><strong>Sexe:</strong> {Boolean(modalCandidate.sexe) ? 'Homme' : 'Femme'}</p>
                                     <p><strong>Téléphone:</strong> {modalCandidate.whatssap ? <a href={`https://wa.me/${cleanPhone(modalCandidate.whatssap)}`} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{modalCandidate.whatssap}</a> : 'N/A'}</p>
+                                    {modalCandidate.tiktok && <p><strong>TikTok:</strong> <a href={modalCandidate.tiktok} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{modalCandidate.tiktok}</a></p>}
+                                    {modalCandidate.insta && <p><strong>Instagram:</strong> <a href={modalCandidate.insta} target="_blank" rel="noopener noreferrer" className={styles.phoneLink}>{modalCandidate.insta}</a></p>}
                                     <div className={styles.modalActions}>
                                         <button className={`${styles.btn} ${modalCandidate.favoris ? styles.btnPrimary : styles.btnGhost}`} onClick={() => toggleFavori(modalCandidate.id, !modalCandidate.favoris)}>{modalCandidate.favoris ? "★" : "☆"}</button>
                                         <button className={`${styles.btn} ${modalCandidate.acontacter ? styles.btnSuccess : styles.btnPrimary}`} onClick={() => toggleAContacter(modalCandidate.id, !modalCandidate.acontacter)}>📞</button>

@@ -17,7 +17,7 @@ export async function GET(request) {
     const client = supabaseServer();
     const { data, error } = await client
       .from('CANDIDAT')
-      .select('id, nom, prenom, ville, sexe, motivation, whatssap, medias:MEDIA(filename, filetype), favoris:FAVORIS(id), acontacter:ACONTACTER(id)')
+      .select('id, nom, prenom, ville, sexe, motivation, whatssap, tiktok, insta, medias:MEDIA(filename, filetype), favoris:FAVORIS(id), acontacter:ACONTACTER(id)')
       .order('id', { ascending: false });
 
     if (error) {
@@ -130,6 +130,8 @@ export async function GET(request) {
         prenom: c.prenom,
         ville: c.ville,
         sexe: c.sexe,
+        tiktok: c.tiktok,
+        insta: c.insta,
         motivation: c.motivation,
         whatssap: c.whatssap,
         medias: resolvedMedias,

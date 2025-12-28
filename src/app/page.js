@@ -11,8 +11,12 @@ export default function Home() {
       const [showPopup, setShowPopup] = useState(false);
       const showCustomPopup = (msg) => {
         setPopupMsg(msg);
+        setPopupDisappearing(false);
         setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3200);
+        setTimeout(() => {
+          setPopupDisappearing(true);
+          setTimeout(() => setShowPopup(false), 400);
+        }, 3200);
       };
     // Affiche le header si la souris approche du haut de la page (desktop)
     useEffect(() => {
@@ -94,6 +98,8 @@ export default function Home() {
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [formStep, setFormStep] = useState(1); // Step 1: infos, Step 2: présentation, Step 3: médias
+  const [isLegalMenuOpen, setIsLegalMenuOpen] = useState(false);
+  const [popupDisappearing, setPopupDisappearing] = useState(false);
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -767,7 +773,7 @@ export default function Home() {
                     required
                     className={styles.rgpdCheckbox}
                   />
-                  J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/rgpd.pdf" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
+                  J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/politique-confidentialite" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
                 </label>
               </div>
             </div>
@@ -1166,7 +1172,7 @@ export default function Home() {
                   onChange={e => setRgpdAccepted(e.target.checked)}
                   required
                 />
-                J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/rgpd.pdf" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
+                J’accepte que mes données soient utilisées pour le traitement de ma candidature conformément à la <a href="/politique-confidentialite" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
               </label>
             </div>
           </div>
@@ -1199,23 +1205,23 @@ export default function Home() {
   return (
     <>
       {showPopup && (
-        <div style={{
+        <div className={`${styles.dropletPopup} ${popupDisappearing ? styles.disappearing : ''}`} style={{
           position: 'fixed',
           top: '18px',
           left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(255,255,255,0.22)',
-          color: '#ff5fb7',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          color: '#ffffff',
           padding: '18px 32px',
-          borderRadius: '18px',
-          boxShadow: '0 4px 32px #0003',
           zIndex: 9999,
           fontWeight: 600,
           fontSize: '1.08rem',
           maxWidth: '90vw',
           textAlign: 'center',
-          backdropFilter: 'blur(14px) saturate(180%)',
-          border: '1.5px solid rgba(255,91,183,0.18)',
+          textShadow: '0 2px 4px rgba(0,0,0,0.5)',
           letterSpacing: '0.02em',
         }}>
           {popupMsg}
@@ -1311,7 +1317,7 @@ export default function Home() {
             </div>
           </section>
           {/* Nouveau footer liquid glass amélioré */}
-      <footer className={styles.footer}>
+      <footer className={`${styles.footer} ${isLegalMenuOpen ? styles.footerExpanded : ''}`}>
         <div className={styles.logo}>
           <img className={styles.logoImg} src="/minilogo.png" alt="Queen House Logo" />
         </div>
@@ -1320,6 +1326,23 @@ export default function Home() {
           <button className={styles.navLink} onClick={goAbout}>À propos</button>
           <button className={styles.navLink} onClick={goCandidature}>Candidater</button>
         </nav>
+        <div className={styles.footerLinks}>
+          <button 
+            className={`${styles.footerLink} ${styles.legalButton}`} 
+            onClick={() => setIsLegalMenuOpen(!isLegalMenuOpen)}
+            style={{ background: isLegalMenuOpen ? 'rgba(255, 255, 0, 0.1)' : 'transparent' }}
+          >
+            Legal {isLegalMenuOpen ? '▲' : '▼'}
+          </button>
+          {isLegalMenuOpen && (
+            <>
+              <a href="/politique-confidentialite" className={`${styles.footerLink} ${styles.legalLink}`}>Politique de Confidentialité</a>
+              <a href="/conditions-generales" className={`${styles.footerLink} ${styles.legalLink}`}>Conditions Générales</a>
+              <a href="/politique-cookies" className={`${styles.footerLink} ${styles.legalLink}`}>Politique de Cookies</a>
+              <a href="/mentions-legales" className={`${styles.footerLink} ${styles.legalLink}`}>Mentions Légales</a>
+            </>
+          )}
+        </div>
         <span style={{color: '#FFF9E3', fontSize: '0.95rem', marginLeft: '2vw'}}>Queen House - Tous droits réservés</span>
       </footer>
         </div>
