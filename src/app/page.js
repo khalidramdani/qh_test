@@ -393,6 +393,10 @@ export default function Home() {
       // Images size
       if (formData.photos && formData.photos.length > 0) {
         for (const file of formData.photos) {
+          if (!file.type.startsWith('image/')) {
+            alert('Le fichier ' + file.name + ' n\'est pas une image valide.');
+            return false;
+          }
           if (file.size > 25 * 1024 * 1024) {
             alert('L\'image ' + file.name + ' dépasse 25 Mo. Merci de la compresser avant d\'envoyer.');
             return false;
@@ -402,6 +406,14 @@ export default function Home() {
       // Videos duration
       if (formData.videos && formData.videos.length > 0) {
         for (const file of formData.videos) {
+          if (!file.type.startsWith('video/')) {
+            alert('Le fichier ' + file.name + ' n\'est pas une vidéo valide.');
+            return false;
+          }
+          if (file.size > 25 * 1024 * 1024) {
+            alert('La vidéo ' + file.name + ' dépasse 25 Mo. Merci de la compresser avant d\'envoyer.');
+            return false;
+          }
           const url = URL.createObjectURL(file);
           const video = document.createElement('video');
           video.preload = 'metadata';
@@ -702,7 +714,7 @@ export default function Home() {
                     <input
                       type="file"
                       name="photos"
-                      accept="image/*"
+                      accept="*"
                       multiple
                       onChange={handleChange}
                       className={styles.fileInput}
@@ -732,7 +744,7 @@ export default function Home() {
                     <input
                       type="file"
                       name="videos"
-                      accept="video/*,.mov"
+                      accept="*"
                       multiple
                       onChange={handleChange}
                       className={styles.fileInput}
@@ -1093,7 +1105,7 @@ export default function Home() {
                 className={styles.mobileFileInput}
                 type="file"
                 name="photos"
-                accept="image/*"
+                accept="*"
                 multiple
                 onChange={handleChange}
               />
@@ -1128,7 +1140,7 @@ export default function Home() {
                 className={styles.mobileFileInput}
                 type="file"
                 name="videos"
-                accept="video/*,.mov"
+                accept="*"
                 multiple
                 onChange={handleChange}
               />
