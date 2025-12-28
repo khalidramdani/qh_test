@@ -3,6 +3,7 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useState, useEffect, useRef } from "react";
 import { FeuilleGauche, FeuilleDroite } from "../components/Feuille";
+import heic2any from 'heic2any';
 import next from "next";
 
 export default function Home() {
@@ -449,7 +450,45 @@ export default function Home() {
         }
       }
       return true;
-    }
+    };
+
+    const convertToPNG = async (file) => {
+      // Try HEIC conversion first
+      try {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/png',
+          quality: 0.8
+        });
+        // If successful, return as File
+        return new File([convertedBlob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
+      } catch (heicError) {
+        // Not HEIC or conversion failed, try standard Image conversion
+        console.log('HEIC conversion failed, trying standard conversion:', heicError);
+      }
+
+      // Standard conversion for other formats
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFile = new File([blob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
+              resolve(newFile);
+            } else {
+              reject(new Error('Canvas conversion failed'));
+            }
+          }, 'image/png');
+        };
+        img.onerror = () => reject(new Error('Image loading failed'));
+        img.src = URL.createObjectURL(file);
+      });
+    };
 
     const submitSequence = async () => {
       // Ensure all medias are valid before creating the candidate
@@ -486,12 +525,23 @@ export default function Home() {
         // Photos
         if (formData.photos && formData.photos.length > 0) {
           for (let i = 0; i < formData.photos.length; i++) {
-            const file = formData.photos[i];
+            let file = formData.photos[i];
+            // Convert to PNG if not already
+            if (file.type !== 'image/png') {
+              try {
+                file = await convertToPNG(file);
+                formData.photos[i] = file; // Update the array
+              } catch (err) {
+                alert('Erreur conversion image: ' + file.name);
+                console.error(err);
+                continue;
+              }
+            }
             if (file.size > 25 * 1024 * 1024) {
               alert('L\'image ' + file.name + ' dépasse 25 Mo. Merci de la compresser avant d\'envoyer.');
               continue;
             }
-            const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop() : 'jpg';
+            const ext = 'png'; // Now all are PNG
             const desiredName = `${candidateId}-img-${i + 1}.${ext}`;
             try {
               const res = await uploadToB2(file, desiredName);
